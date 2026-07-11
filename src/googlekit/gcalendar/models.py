@@ -94,6 +94,10 @@ class Attendee:
             body["optional"] = True
         if self.response_status:
             body["responseStatus"] = self.response_status
+        if self.self:
+            body["self"] = True
+        if self.organizer:
+            body["organizer"] = True
         return body
 
 
