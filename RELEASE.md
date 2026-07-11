@@ -36,6 +36,17 @@ Declared on `DriveAPI` / `SheetsAPI` / … protocols so `client.drive.` suggests
 - `ClientConfig(retry=5)` shorthand sets `RetryPolicy(max_attempts=5)`
 - Rich class and field docstrings for IDE hover (timeout, retry fields, what gets retried, Calendar timezone, Shared Drives, etc.)
 
+#### Public API hover docs
+
+- Expanded docstrings on `GoogleKit` factories/properties, `DriveClient` managers, `ScopeProfile` / `ScopeSet`, `Page` / `PageIterator`, and `FilesManager.list` (including empty-list / `drive.file` tip)
+- Service protocols (`DriveAPI`, `SheetsAPI`, …) document **managers and shortcuts** for hover after `client.drive.` / `client.sheets.` / …
+- Service client class docs call out managers, shortcuts, and key pitfalls (Calendar timezone, Docs UTF-16, Drive scopes)
+
+#### Docs: shortcuts + managers (all services)
+
+- README Quick Start / Usage Examples show **both** manager and shortcut calls for Drive, Sheets, Calendar, Docs, and Slides
+- MkDocs service pages (`docs/drive.md`, `sheets.md`, `calendar.md`, `docs.md`, `slides.md`) include shortcut ↔ manager mapping tables
+
 #### Docs: four auth methods
 
 - Auth tables list **`auto()` as Method 4**, separate from `from_adc()` (not combined in one row)
