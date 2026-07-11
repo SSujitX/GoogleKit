@@ -1,12 +1,4 @@
 <p align="center">
-  <a href="https://pypi.org/project/googlekit/"><img src="https://img.shields.io/pypi/v/googlekit.svg" alt="PyPI version"></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11+-blue.svg" alt="Python"></a>
-  <a href="https://pepy.tech/project/googlekit"><img src="https://static.pepy.tech/badge/googlekit" alt="Downloads"></a>
-  <a href="https://pepy.tech/project/googlekit"><img src="https://static.pepy.tech/badge/googlekit/month" alt="Monthly Downloads"></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-</p>
-
-<p align="center">
   <a href="https://github.com/SSujitX/GoogleKit">GitHub</a> •
   <a href="https://pypi.org/project/googlekit/">PyPI</a> •
   <a href="https://ssujitx.github.io/GoogleKit/">Documentation</a> •
@@ -159,7 +151,7 @@ GoogleKit supports multiple authentication methods, ordered by recommendation fo
 | **2. Service Account** | `from_service_account()` | Servers, automation, bots | JSON key file |
 | **3. OAuth2 Client** | `from_oauth()` | Personal scripts, desktop apps | JSON + browser auth |
 
-**Security:** never commit `client_secrets.json`, service-account keys, or token files. OAuth tokens default to an OS user config directory when `token_path` is omitted.
+**Security:** never commit `client_secrets.json`, service-account keys, or token files. OAuth tokens default to `./token.json` in the current working directory when `token_path` is omitted (keep it gitignored).
 
 ---
 
@@ -398,6 +390,18 @@ GoogleKit.auto(*, services=[...], profile=...)
 `services` (or explicit `scopes=`) is **required** on unified constructors so GoogleKit never requests every Workspace write scope by default.
 
 Lazy accessors: `client.drive`, `client.sheets`, `client.calendar`, `client.docs`, `client.slides`.
+
+### Config and retries
+
+```python
+from googlekit import ClientConfig, RetryPolicy
+
+ClientConfig(retry=5)  # shorthand → RetryPolicy(max_attempts=5)
+ClientConfig(retry=RetryPolicy(max_attempts=8, initial_delay=1.0))
+ClientConfig(timeout=60, default_timezone="UTC")
+```
+
+Pass `config=` into `GoogleKit.from_oauth` / `.auto` or any service `from_*` factory.
 
 ### Drive (`client.drive`)
 
