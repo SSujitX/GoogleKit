@@ -19,7 +19,7 @@ Requirements on PyPI:
 
 1. Create a pending publisher for the project
 2. Point it at this GitHub repository and the `publish.yml` workflow
-3. Use the `pypi` GitHub Environment (optional protections recommended)
+3. Leave the GitHub Environment field empty (or create an environment and add it to the workflow later)
 
 Push a tag:
 
