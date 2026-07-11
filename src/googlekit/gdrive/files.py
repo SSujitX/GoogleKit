@@ -20,7 +20,12 @@ from googlekit.gdrive.transfers import DriveTransfers
 
 
 class FilesManager(FileMediaMixin):
-    """Manage Drive files: list, search, upload, download, metadata, trash."""
+    """Manage Drive files: list, search, upload, download, metadata, trash.
+
+    Tip: default OAuth ``READWRITE`` uses ``drive.file``, so ``list(folder_id="root")``
+    may be empty until the app has created/opened files. Use ``ScopeProfile.FULL``
+    or ``READONLY`` to list the user's whole Drive.
+    """
 
     def __init__(self, transport: Transport) -> None:
         self._transport = transport
@@ -53,7 +58,21 @@ class FilesManager(FileMediaMixin):
         drive_id: str | None = None,
         include_trashed: bool = False,
     ) -> Page[DriveFile]:
-        """Return one page of files matching optional filters."""
+        """Return one page of files matching optional filters.
+
+        Args:
+            query: Drive query language string (combined with folder filter).
+            folder_id: Restrict to children of this folder (``"root"`` for My Drive root).
+            page_size: Max items in this page.
+            page_token: Token from a previous page's ``next_page_token``.
+            order_by: Drive ``orderBy`` expression.
+            fields: Partial response fields (default includes common metadata).
+            corpora / drive_id: Shared Drive listing; must be paired when using ``corpora="drive"``.
+            include_trashed: Include trashed files when True.
+
+        Returns:
+            :class:`~googlekit.core.pagination.Page` of :class:`~googlekit.gdrive.models.DriveFile`.
+        """
         q = self._build_query(query, folder_id=folder_id, include_trashed=include_trashed)
         return self._fetch_page(
             q,
@@ -78,7 +97,7 @@ class FilesManager(FileMediaMixin):
         drive_id: str | None = None,
         include_trashed: bool = False,
     ) -> PageIterator[DriveFile]:
-        """Lazily iterate all matching files across pages."""
+        """Lazily iterate all matching files across pages (same filters as ``list``)."""
         q = self._build_query(query, folder_id=folder_id, include_trashed=include_trashed)
 
         def fetch(token: str | None, size: int) -> Page[DriveFile]:
