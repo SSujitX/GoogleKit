@@ -87,7 +87,11 @@ _CALENDAR_NARROW: frozenset[str] = frozenset(
 
 @dataclass(frozen=True, slots=True)
 class ScopeSet:
-    """Immutable set of OAuth scopes with helpers."""
+    """Immutable set of OAuth scope URLs with cover/missing helpers.
+
+    Full ``drive`` / ``calendar`` scopes are treated as covering their narrower
+    variants when checking ``covers`` / ``missing``.
+    """
 
     values: frozenset[str]
 
@@ -96,24 +100,30 @@ class ScopeSet:
 
     @classmethod
     def of(cls, *scopes: str | Scope) -> ScopeSet:
+        """Build a set from individual scope strings or :class:`Scope` values."""
         return cls(frozenset(str(s) for s in scopes))
 
     @classmethod
     def from_iterable(cls, scopes: Iterable[str | Scope]) -> ScopeSet:
+        """Build a set from any iterable of scopes."""
         return cls(frozenset(str(s) for s in scopes))
 
     def union(self, other: ScopeSet | Iterable[str | Scope]) -> ScopeSet:
+        """Return a new set containing scopes from both sides."""
         if isinstance(other, ScopeSet):
             return ScopeSet(self.values | other.values)
         return ScopeSet(self.values | frozenset(str(s) for s in other))
 
     def includes(self, scope: str | Scope) -> bool:
+        """True if this exact scope URL is present."""
         return str(scope) in self.values
 
     def covers(self, required: ScopeSet | Iterable[str | Scope]) -> bool:
+        """True if every required scope is granted (with drive/calendar broadening)."""
         return not self.missing(required)
 
     def missing(self, required: ScopeSet | Iterable[str | Scope]) -> frozenset[str]:
+        """Return required scopes not covered by this set."""
         needed = (
             required.values
             if isinstance(required, ScopeSet)
@@ -133,11 +143,21 @@ class ScopeSet:
         return len(self.values)
 
     def as_list(self) -> list[str]:
+        """Sorted list of scope URLs (stable for logging / auth requests)."""
         return sorted(self.values)
 
 
 class ScopeProfile(StrEnum):
-    """Least-privilege scope profiles per service."""
+    """Least-privilege scope presets per service (``metadata`` → ``full``).
+
+    For **Drive**:
+
+    - ``READWRITE`` (default) → ``drive.file`` (only files this app created/opened)
+    - ``READONLY`` → ``drive.readonly`` (all files, read)
+    - ``FULL`` → ``drive`` (all files, read/write)
+
+    Pass as ``profile=ScopeProfile.FULL`` on ``GoogleKit.auto`` / ``from_oauth``.
+    """
 
     METADATA = "metadata"
     READONLY = "readonly"
@@ -193,7 +213,11 @@ SLIDES_PRESETS: dict[ScopeProfile, ScopeSet] = {
 
 
 def preset_for(service: str, profile: ScopeProfile = ScopeProfile.READWRITE) -> ScopeSet:
-    """Return the scope preset for a service name."""
+    """Return the least-privilege scope preset for a service key.
+
+    ``service`` may be ``gdrive`` / ``drive``, ``gsheets`` / ``sheets``,
+    ``gcalendar`` / ``calendar``, ``gdocs`` / ``docs``, ``gslides`` / ``slides``.
+    """
     table = {
         "gdrive": DRIVE_PRESETS,
         "drive": DRIVE_PRESETS,
