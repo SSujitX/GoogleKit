@@ -303,18 +303,27 @@ Enable the APIs you need in
 | Google Docs | [Enable Docs API](https://console.cloud.google.com/apis/library/docs.googleapis.com) |
 | Google Slides | [Enable Slides API](https://console.cloud.google.com/apis/library/slides.googleapis.com) |
 
-**Step 3: OAuth Consent Screen**
+**Step 3: Configure Google Auth Platform (OAuth app)**
 
-1. **APIs & Services → [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent)**
-2. Choose **External** (or Internal for Workspace)
-3. Fill app name, support email, developer contact
-4. Add yourself as a **Test user** while the app is in testing
+Google now uses **[Google Auth Platform](https://console.cloud.google.com/auth/overview)** (not only the old “OAuth consent screen” page). Complete these before creating a client:
 
-**Step 4: Create OAuth Client ID**
+1. **[Branding](https://console.cloud.google.com/auth/branding)** — app name, support email, developer contact
+2. **[Audience](https://console.cloud.google.com/auth/audience)** — **External** (or Internal for Workspace); while testing, add yourself as a test user
+3. **[Data Access](https://console.cloud.google.com/auth/scopes)** — add the Google Workspace scopes you need (or GoogleKit will request them at runtime; listing them here helps consent / verification)
 
-1. **[Credentials](https://console.cloud.google.com/apis/credentials) → Create Credentials → OAuth client ID**
-2. Application type: **Desktop app**
-3. Download JSON → rename to `client_secrets.json`
+If the console still shows the older UI: **APIs & Services → [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent)** does the same job.
+
+**Step 4: Create OAuth client (Desktop)**
+
+You’re on the right page when you see **Clients** and **+ Create client** (empty until you create one):
+
+1. Open **[Google Auth Platform → Clients](https://console.cloud.google.com/auth/clients)**
+2. **+ Create client**
+3. Application type: **Desktop app**
+4. Name it (e.g. `GoogleKit desktop`) → **Create**
+5. Download the JSON → rename to `client_secrets.json` (keep it out of git)
+
+Older path (still works on some projects): **APIs & Services → [Credentials](https://console.cloud.google.com/apis/credentials) → Create Credentials → OAuth client ID → Desktop app**.
 
 #### Usage
 
