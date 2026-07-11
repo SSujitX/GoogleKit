@@ -283,25 +283,38 @@ class EventsManager:
                 raise ValidationError(
                     "response_status requires attendees including an entry with self=True"
                 )
+            patched: list[dict[str, Any]] = []
             applied = False
-            for attendee in body.get("attendees") or []:
-                if attendee.get("self") is True:
-                    attendee["responseStatus"] = response_status
-                    applied = True
+            for item in attendees:
+                if isinstance(item, Attendee):
+                    entry = item.to_api()
+                    if item.self:
+                        entry["self"] = True
+                        entry["responseStatus"] = response_status
+                        applied = True
+                    patched.append(entry)
+                elif isinstance(item, dict):
+                    entry = dict(item)
+                    if entry.get("self") is True:
+                        entry["responseStatus"] = response_status
+                        applied = True
+                    patched.append(entry)
+                else:
+                    patched.append({"email": str(item)})
             if not applied:
                 raise ValidationError(
                     "response_status requires an attendee marked self=True "
                     "(the authenticated participant)"
                 )
+            body["attendees"] = patched
+            # Event resource field (not a patch() query parameter).
+            body["attendeesOmitted"] = True
         kwargs: dict[str, Any] = {
             "calendarId": cid,
             "eventId": eid,
             "body": body,
             "sendUpdates": str(send_updates),
         }
-        if response_status is not None:
-            # Preserve other attendees when only updating the self RSVP payload.
-            kwargs["attendeesOmitted"] = True
         if conference:
             kwargs["conferenceDataVersion"] = 1
         request = self._service().events().patch(**kwargs)
