@@ -9,7 +9,7 @@ Unofficial Python SDK for **Google Drive**, **Sheets**, **Calendar**, **Docs**, 
 ## Why GoogleKit?
 
 - One consistent API across five Workspace products
-- Optional extras so installs stay lean
+- Google client libraries included by default (`uv add googlekit`)
 - OAuth, service accounts, and ADC with shared credentials
 - Least-privilege scope presets
 - Retries, lazy pagination, and actionable errors
