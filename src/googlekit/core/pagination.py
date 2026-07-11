@@ -13,7 +13,11 @@ T = TypeVar("T")
 
 @dataclass(slots=True)
 class Page(Generic[T]):
-    """A single page of API results."""
+    """One page of API results (items + optional ``next_page_token``).
+
+    Use ``.items`` for this page, or ``files.iterate(...)`` / ``PageIterator`` to
+    walk every page. ``has_more`` is True when another page token is present.
+    """
 
     items: list[T]
     next_page_token: str | None = None
@@ -21,11 +25,16 @@ class Page(Generic[T]):
 
     @property
     def has_more(self) -> bool:
+        """True if ``next_page_token`` is set (another page is available)."""
         return bool(self.next_page_token)
 
 
 class PageIterator(Generic[T]):
-    """Lazy iterator over paginated Google API results."""
+    """Lazy iterator over paginated Google API results.
+
+    Iterating yields individual items. Call ``.pages()`` to yield full
+    :class:`Page` objects instead.
+    """
 
     def __init__(
         self,
