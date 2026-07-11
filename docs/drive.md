@@ -957,14 +957,17 @@ Short names resolve via `EXPORT_MIME_MAP` in `googlekit.gdrive.export_formats` (
 | `jpeg` / `jpg` | `image/jpeg` |
 | `svg` | `image/svg+xml` |
 
-### Apps Script / Vids
+### Apps Script
 
 | Source MIME | Short name | Export MIME |
 | ----------- | ---------- | ----------- |
 | `application/vnd.google-apps.script` | `json` | `application/vnd.google-apps.script+json` |
-| `application/vnd.google-apps.vid` | `mp4` | `video/mp4` |
 
 Invalid combinations raise `ValidationError`.
+
+Google Vids are not compatible with `files.export`. Google requires the Drive
+long-running `files.download` operation for MP4 downloads; GoogleKit currently
+raises `ValidationError` instead of issuing an invalid export request.
 
 ## Shared drives
 
