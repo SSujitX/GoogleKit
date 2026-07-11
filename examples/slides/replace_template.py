@@ -5,7 +5,7 @@ Put tokens like {{title}} and {{speaker}} in the presentation, then run:
     python replace_template.py <presentation_id>
 
 Requires:
-    uv add "googlekit[gslides]"
+    uv add googlekit
 """
 
 from __future__ import annotations
