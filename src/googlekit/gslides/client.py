@@ -14,6 +14,7 @@ from googlekit.core.service_apis import SlidesAPI
 from googlekit.core.transport import Transport
 from googlekit.gslides.elements import ElementsManager
 from googlekit.gslides.images import ImagesManager
+from googlekit.gslides.models import BatchUpdateResult, PredefinedLayout, Presentation
 from googlekit.gslides.pages import PagesManager
 from googlekit.gslides.presentations import PresentationsManager
 from googlekit.gslides.tables import TablesManager
@@ -24,6 +25,8 @@ class SlidesClient:
     """High-level Google Slides API client.
 
     Managers: ``presentations``, ``pages``, ``elements``, ``text``, ``images``, ``tables``.
+
+    Shortcuts: ``create_presentation``, ``get_presentation``, ``add_slide``.
 
     Sizes/transforms use EMU helpers on models. Export/share need Drive scopes.
     """
@@ -43,6 +46,37 @@ class SlidesClient:
         self.text = TextManager(self._transport)
         self.images = ImagesManager(self._transport)
         self.tables = TablesManager(self._transport)
+
+    def create_presentation(self, title: str = "Untitled presentation") -> Presentation:
+        """Create a new blank presentation."""
+        return self.presentations.create(title)
+
+    def get_presentation(self, presentation_id: str) -> Presentation:
+        """Fetch a presentation including slides."""
+        return self.presentations.get(presentation_id)
+
+    def add_slide(
+        self,
+        presentation_id: str,
+        *,
+        layout: PredefinedLayout | str = PredefinedLayout.BLANK,
+        insertion_index: int | None = None,
+        object_id: str | None = None,
+    ) -> BatchUpdateResult:
+        """Add a slide with a predefined layout.
+
+        Args:
+            presentation_id: Presentation ID.
+            layout: Predefined layout name (default blank).
+            insertion_index: Zero-based index; append when omitted.
+            object_id: Optional stable object ID for the new slide.
+        """
+        return self.pages.add(
+            presentation_id,
+            layout=layout,
+            insertion_index=insertion_index,
+            object_id=object_id,
+        )
 
     @property
     def provider(self) -> CredentialProvider:
