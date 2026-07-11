@@ -1,4 +1,4 @@
-"""Optional dependency loading helpers."""
+"""Google client library loading helpers."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from typing import Any
 
 from googlekit.core.exceptions import MissingExtraError
 
-# Extra name → representative importable module used to detect installation.
-_EXTRA_MODULES: dict[str, str] = {
+# Service key → representative importable module used to detect installation.
+_SERVICE_MODULES: dict[str, str] = {
     "gdrive": "googleapiclient.discovery",
     "gsheets": "googleapiclient.discovery",
     "gcalendar": "googleapiclient.discovery",
@@ -26,18 +26,18 @@ _SERVICE_LABELS: dict[str, str] = {
 
 
 def require_extra(extra: str) -> None:
-    """Ensure an optional extra's dependencies are importable.
+    """Ensure Google client libraries are importable.
 
-    Args:
-        extra: Extra name such as ``gdrive`` or ``gsheets``.
+    ``extra`` is the service key used for error labeling (e.g. ``gdrive``).
+    Dependencies ship with the base ``googlekit`` package.
 
     Raises:
-        MissingExtraError: When the required Google client libraries are absent.
+        MissingExtraError: When the Google client libraries are absent.
         ValueError: When ``extra`` is unknown.
     """
-    module_name = _EXTRA_MODULES.get(extra)
+    module_name = _SERVICE_MODULES.get(extra)
     if module_name is None:
-        raise ValueError(f"Unknown GoogleKit extra: {extra!r}")
+        raise ValueError(f"Unknown GoogleKit service: {extra!r}")
     try:
         import_module(module_name)
     except ImportError as exc:
@@ -50,7 +50,7 @@ def import_optional(module: str, *, extra: str) -> Any:
 
     Args:
         module: Fully-qualified module path.
-        extra: Extra name for the error message.
+        extra: Service key for the error message.
 
     Returns:
         The imported module.
@@ -60,9 +60,9 @@ def import_optional(module: str, *, extra: str) -> Any:
 
 
 def installed_extras() -> dict[str, bool]:
-    """Return which service extras appear installed."""
+    """Return which services can load Google client libraries."""
     result: dict[str, bool] = {}
-    for extra in _EXTRA_MODULES:
+    for extra in _SERVICE_MODULES:
         try:
             require_extra(extra)
             result[extra] = True
