@@ -72,8 +72,22 @@ class InMemoryTokenStore:
         self._data = None
 
 
-def default_token_path(app_name: str = "googlekit") -> Path:
-    """Return an OS-appropriate user config path for OAuth tokens."""
+def default_token_path(filename: str = "token.json") -> Path:
+    """Return ``./token.json`` in the current working directory.
+
+    Tokens live next to the script/project that uses GoogleKit by default.
+    Pass an absolute ``token_path`` (or use :func:`user_config_token_path`) if
+    you prefer the OS user config directory instead.
+    """
+    return Path.cwd() / filename
+
+
+def user_config_token_path(app_name: str = "googlekit") -> Path:
+    """Return an OS user-config path for OAuth tokens (optional alternative).
+
+    Windows: ``%APPDATA%/<app_name>/token.json``
+    Unix: ``$XDG_CONFIG_HOME/<app_name>/token.json`` or ``~/.config/...``
+    """
     if os.name == "nt":
         base = Path(os.environ.get("APPDATA") or Path.home() / "AppData" / "Roaming")
     else:
