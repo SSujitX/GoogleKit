@@ -144,16 +144,16 @@ Unified client:
 
     from googlekit import GoogleKit
 
-    kit = GoogleKit.from_oauth(
+    client = GoogleKit.from_oauth(
         client_secrets="client_secret.json",
         token_path="token.json",
     )
 
-    kit.drive.files.upload("report.pdf")
-    kit.sheets.values.read("spreadsheet_id", "Sheet1!A1:D20")
-    kit.calendar.events.create(...)
-    kit.docs.documents.create("Proposal")
-    kit.slides.presentations.create("Pitch Deck")
+    client.drive.files.upload("report.pdf")
+    client.sheets.values.read("spreadsheet_id", "Sheet1!A1:D20")
+    client.calendar.events.create(...)
+    client.docs.documents.create("Proposal")
+    client.slides.presentations.create("Pitch Deck")
 
 Individual clients:
 
