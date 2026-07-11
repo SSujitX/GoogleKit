@@ -29,7 +29,7 @@ from googlekit.core.exceptions import (
 try:
     __version__ = version("googlekit")
 except PackageNotFoundError:  # pragma: no cover
-    __version__ = "0.1.0"
+    __version__ = "dev"
 
 __all__ = [
     "APIError",
