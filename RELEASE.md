@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Google API client libraries are now default dependencies (`uv add googlekit`); service extras removed
+
 ### Added
 
-- Core package: exceptions, retries, pagination, transport, optional extras
+- Core package: exceptions, retries, pagination, transport, client-library checks
 - Authentication: OAuth desktop, service account, ADC, scope presets, token stores
 - Unified `GoogleKit` client with lazy service accessors
 - Minimal CLI (`googlekit --version`, `doctor`, `auth status`)
