@@ -9,27 +9,21 @@
 
 ## Supported services
 
-| Service | Extra | Import |
-|---------|-------|--------|
-| Google Drive | `gdrive` | `googlekit.gdrive` |
-| Google Sheets | `gsheets` | `googlekit.gsheets` |
-| Google Calendar | `gcalendar` | `googlekit.gcalendar` |
-| Google Docs | `gdocs` | `googlekit.gdocs` |
-| Google Slides | `gslides` | `googlekit.gslides` |
+| Service | Import |
+|---------|--------|
+| Google Drive | `googlekit.gdrive` |
+| Google Sheets | `googlekit.gsheets` |
+| Google Calendar | `googlekit.gcalendar` |
+| Google Docs | `googlekit.gdocs` |
+| Google Slides | `googlekit.gslides` |
 
 ## Installation (uv)
 
 ```bash
 uv add googlekit
-uv add "googlekit[gdrive]"
-uv add "googlekit[gsheets]"
-uv add "googlekit[gcalendar]"
-uv add "googlekit[gdocs]"
-uv add "googlekit[gslides]"
-uv add "googlekit[all]"
 ```
 
-The base package imports without Google client libraries. Accessing a service whose extra is missing raises `MissingExtraError` with the correct `uv add` command.
+This installs GoogleKit and the Google API client libraries needed for all services.
 
 ## Quick start
 
@@ -85,7 +79,7 @@ GoogleKit uses **least privilege** presets (`metadata`, `readonly`, `readwrite`,
 ## Development
 
 ```bash
-uv sync --all-extras --group dev
+uv sync --group dev
 uv run pytest -m "not integration"
 uv build
 ```
