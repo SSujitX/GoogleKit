@@ -259,10 +259,25 @@ class SheetsAPI(Protocol):
     Shortcuts: ``create_spreadsheet``, ``read_values``, ``write_values``, …
     """
 
-    spreadsheets: SpreadsheetsManager
-    values: ValuesManager
-    worksheets: WorksheetsManager
-    formatting: FormattingManager
+    @property
+    def spreadsheets(self) -> SpreadsheetsManager:
+        """Create/get spreadsheet metadata and raw ``batchUpdate``."""
+        ...
+
+    @property
+    def values(self) -> ValuesManager:
+        """Read / write / append / clear cell values (A1 ranges)."""
+        ...
+
+    @property
+    def worksheets(self) -> WorksheetsManager:
+        """Worksheet tabs: create, rename, delete, resize, freeze, hide."""
+        ...
+
+    @property
+    def formatting(self) -> FormattingManager:
+        """Text, numbers, colors, borders, merges, column/row sizes."""
+        ...
 
     def create_spreadsheet(
         self,
@@ -272,7 +287,14 @@ class SheetsAPI(Protocol):
         time_zone: str | None = None,
         sheet_count: int = 1,
     ) -> Spreadsheet:
-        """Create a new spreadsheet."""
+        """Create a new spreadsheet.
+
+        Args:
+            title: Spreadsheet title.
+            locale: Optional locale (e.g. ``en_US``).
+            time_zone: Optional IANA time zone.
+            sheet_count: Number of initial worksheets (minimum 1).
+        """
         ...
 
     def get_spreadsheet(
@@ -282,7 +304,13 @@ class SheetsAPI(Protocol):
         ranges: list[str] | None = None,
         include_grid_data: bool = False,
     ) -> Spreadsheet:
-        """Fetch spreadsheet metadata (and optionally grid data)."""
+        """Fetch spreadsheet metadata (and optionally grid data).
+
+        Args:
+            spreadsheet_id: Spreadsheet ID.
+            ranges: Optional A1 ranges to limit returned sheets/data.
+            include_grid_data: Include cell grid data when True.
+        """
         ...
 
     def read_values(
@@ -294,7 +322,12 @@ class SheetsAPI(Protocol):
         value_render_option: ValueRenderOption | str = ...,
         date_time_render_option: str = "FORMATTED_STRING",
     ) -> ValueRange:
-        """Read a single A1 range."""
+        """Read a single A1 range.
+
+        Args:
+            spreadsheet_id: Spreadsheet ID.
+            range_name: A1 notation (e.g. ``Sheet1!A1:B10``).
+        """
         ...
 
     def write_values(
@@ -306,7 +339,13 @@ class SheetsAPI(Protocol):
         value_input_option: ValueInputOption | str = ...,
         major_dimension: MajorDimension | str = ...,
     ) -> UpdateValuesResponse:
-        """Overwrite a range with ``values``."""
+        """Overwrite a range with ``values`` (2D list of rows).
+
+        Args:
+            spreadsheet_id: Spreadsheet ID.
+            range_name: A1 notation to overwrite.
+            values: Rows of cell values, e.g. ``[[\"A\", 1], [\"B\", 2]]``.
+        """
         ...
 
     def append_values(
@@ -319,7 +358,13 @@ class SheetsAPI(Protocol):
         insert_data_option: str = "INSERT_ROWS",
         major_dimension: MajorDimension | str = ...,
     ) -> UpdateValuesResponse:
-        """Append rows after the last row with data in the table."""
+        """Append rows after the last row with data in the table.
+
+        Args:
+            spreadsheet_id: Spreadsheet ID.
+            range_name: A1 range identifying the table (e.g. ``Sheet1!A:B``).
+            values: Rows to append.
+        """
         ...
 
 
@@ -331,9 +376,20 @@ class CalendarAPI(Protocol):
     Shortcuts: ``list_events``, ``create_event``, ``get_event``, ``delete_event``.
     """
 
-    calendars: CalendarsManager
-    events: EventsManager
-    freebusy: FreeBusyManager
+    @property
+    def calendars(self) -> CalendarsManager:
+        """Calendar list and secondary calendar CRUD."""
+        ...
+
+    @property
+    def events(self) -> EventsManager:
+        """Event list/CRUD, recurrence, attendees, Meet links."""
+        ...
+
+    @property
+    def freebusy(self) -> FreeBusyManager:
+        """Busy intervals for one or many calendars."""
+        ...
 
     def list_events(
         self,
@@ -350,7 +406,14 @@ class CalendarAPI(Protocol):
         show_deleted: bool = False,
         time_zone: str | None = None,
     ) -> Page[Event]:
-        """List events (one page). Timed bounds must be timezone-aware."""
+        """List events (one page). Timed bounds must be timezone-aware.
+
+        Args:
+            calendar_id: Calendar id (default ``primary``).
+            time_min / time_max: Inclusive window (timezone-aware datetimes).
+            page_size: Max events in this page.
+            q: Free-text search query.
+        """
         ...
 
     def create_event(
@@ -375,7 +438,12 @@ class CalendarAPI(Protocol):
         send_updates: SendUpdates | str = ...,
         status: str | None = None,
     ) -> Event:
-        """Create an event on ``calendar_id`` (default primary)."""
+        """Create an event on ``calendar_id`` (default primary).
+
+        Timed events require timezone-aware datetimes (or
+        ``ClientConfig.default_timezone``). ``send_updates`` defaults to
+        ``none`` so invitations are not emailed unless requested.
+        """
         ...
 
     def get_event(self, calendar_id: CalendarId, event_id: EventId) -> Event:
@@ -389,7 +457,7 @@ class CalendarAPI(Protocol):
         *,
         send_updates: SendUpdates | str = ...,
     ) -> None:
-        """Delete an event."""
+        """Delete an event. ``send_updates`` defaults to ``none``."""
         ...
 
 
@@ -401,10 +469,25 @@ class DocsAPI(Protocol):
     Shortcuts: ``create_document``, ``get_document``, ``append_text``, ``insert_text``.
     """
 
-    documents: DocumentsManager
-    content: ContentManager
-    tables: DocsTablesManager
-    images: DocsImagesManager
+    @property
+    def documents(self) -> DocumentsManager:
+        """Create, get, inspect structure, raw ``batchUpdate``, export, share."""
+        ...
+
+    @property
+    def content(self) -> ContentManager:
+        """Insert/append/replace/delete text, styles, headings, lists, links."""
+        ...
+
+    @property
+    def tables(self) -> DocsTablesManager:
+        """Insert tables, rows/columns, write and format cells."""
+        ...
+
+    @property
+    def images(self) -> DocsImagesManager:
+        """Insert, resize, replace inline images from public URLs."""
+        ...
 
     def create_document(self, title: str = "Untitled document") -> Document:
         """Create a new blank Google Doc."""
@@ -432,7 +515,7 @@ class DocsAPI(Protocol):
         segment_id: str | None = None,
         tab_id: str | None = None,
     ) -> DocsBatchUpdateResult:
-        """Insert ``text`` at a UTF-16 ``index``."""
+        """Insert ``text`` at a UTF-16 ``index`` (body content usually starts at 1)."""
         ...
 
 
@@ -444,12 +527,35 @@ class SlidesAPI(Protocol):
     Shortcuts: ``create_presentation``, ``get_presentation``, ``add_slide``.
     """
 
-    presentations: PresentationsManager
-    pages: PagesManager
-    elements: ElementsManager
-    text: TextManager
-    images: SlidesImagesManager
-    tables: SlidesTablesManager
+    @property
+    def presentations(self) -> PresentationsManager:
+        """Create, get, raw ``batchUpdate``, export, share."""
+        ...
+
+    @property
+    def pages(self) -> PagesManager:
+        """Add / delete / duplicate / reorder slides; list IDs; get page."""
+        ...
+
+    @property
+    def elements(self) -> ElementsManager:
+        """Create shapes, move, resize, transform, group / ungroup."""
+        ...
+
+    @property
+    def text(self) -> TextManager:
+        """Insert / delete / replace / style text and paragraphs."""
+        ...
+
+    @property
+    def images(self) -> SlidesImagesManager:
+        """Insert, replace, position/size images."""
+        ...
+
+    @property
+    def tables(self) -> SlidesTablesManager:
+        """Create tables, write cells, insert/delete rows/cols, format cells."""
+        ...
 
     def create_presentation(self, title: str = "Untitled presentation") -> Presentation:
         """Create a new blank presentation."""
@@ -467,5 +573,12 @@ class SlidesAPI(Protocol):
         insertion_index: int | None = None,
         object_id: str | None = None,
     ) -> SlidesBatchUpdateResult:
-        """Add a slide with a predefined layout."""
+        """Add a slide with a predefined layout.
+
+        Args:
+            presentation_id: Presentation ID.
+            layout: Predefined layout name (default blank).
+            insertion_index: Zero-based index; append when omitted.
+            object_id: Optional stable object ID for the new slide.
+        """
         ...
