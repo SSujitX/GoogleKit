@@ -8,6 +8,7 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version
 
 from googlekit.client import GoogleKit
+from googlekit.core.configuration import ClientConfig
 from googlekit.core.exceptions import (
     APIError,
     AuthenticationError,
@@ -25,6 +26,7 @@ from googlekit.core.exceptions import (
     TransportError,
     ValidationError,
 )
+from googlekit.core.retries import RetryPolicy
 
 try:
     __version__ = version("googlekit")
@@ -35,6 +37,7 @@ __all__ = [
     "APIError",
     "AuthenticationError",
     "AuthorizationError",
+    "ClientConfig",
     "ConfigurationError",
     "ConflictError",
     "GoogleKit",
@@ -46,6 +49,7 @@ __all__ = [
     "QuotaExceededError",
     "RateLimitError",
     "RetryExhaustedError",
+    "RetryPolicy",
     "TransportError",
     "ValidationError",
     "__version__",
