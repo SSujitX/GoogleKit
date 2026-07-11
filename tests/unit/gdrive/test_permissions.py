@@ -75,7 +75,31 @@ def test_change_role_and_remove(drive: DriveClient, mock_service: MagicMock) -> 
 
 def test_invalid_role(drive: DriveClient) -> None:
     with pytest.raises(ValidationError, match="Invalid permission role"):
-        drive.permissions.share_user("file_1", "a@b.com", role="owner")
+        drive.permissions.share_user("file_1", "a@b.com", role="not-a-role")
+
+
+def test_share_anyone_omits_notification_flag(
+    drive: DriveClient,
+    mock_service: MagicMock,
+) -> None:
+    perms = mock_service.permissions.return_value
+    perms.create.return_value = _exec_result({"id": "anyone", "type": "anyone", "role": "reader"})
+    drive.permissions.share_anyone("file_1", public=True)
+    kwargs = perms.create.call_args.kwargs
+    assert "sendNotificationEmail" not in kwargs
+
+
+def test_share_domain(drive: DriveClient, mock_service: MagicMock) -> None:
+    perms = mock_service.permissions.return_value
+    perms.create.return_value = _exec_result(
+        {"id": "dom", "type": "domain", "role": "reader", "domain": "example.com"}
+    )
+    perm = drive.permissions.share_domain("file_1", "example.com", allow_file_discovery=True)
+    assert perm.type == "domain"
+    body = perms.create.call_args.kwargs["body"]
+    assert body["domain"] == "example.com"
+    assert body["allowFileDiscovery"] is True
+    assert "sendNotificationEmail" not in perms.create.call_args.kwargs
 
 
 def test_create_shareable_link(drive: DriveClient, mock_service: MagicMock) -> None:
