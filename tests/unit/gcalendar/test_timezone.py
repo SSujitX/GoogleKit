@@ -220,9 +220,43 @@ def test_patch_response_status_self_only_and_attendees_omitted_in_body() -> None
     body = kwargs["body"]
     assert body["attendeesOmitted"] is True
     by_email = {a["email"]: a for a in body["attendees"]}
-    assert by_email["me@example.com"]["self"] is True
+    # self/organizer are read-only — identify locally, never send them.
+    assert "self" not in by_email["me@example.com"]
+    assert "organizer" not in by_email["me@example.com"]
     assert by_email["me@example.com"]["responseStatus"] == "accepted"
     assert "responseStatus" not in by_email["other@example.com"]
+    assert "self" not in by_email["other@example.com"]
+
+
+def test_patch_response_status_strips_readonly_from_dict_attendees() -> None:
+    service = MagicMock()
+    patch_req = MagicMock()
+    patch_req.execute.return_value = {"id": "evt1"}
+    service.events.return_value.patch.return_value = patch_req
+    transport = MagicMock()
+    transport.config = ClientConfig(retry=RetryPolicy(enabled=False, max_attempts=1))
+    transport.get_service.return_value = service
+    transport.execute.side_effect = lambda request, **kw: request.execute()
+    mgr = EventsManager(transport)
+    mgr.patch(
+        "primary",
+        "evt1",
+        attendees=[
+            {
+                "email": "me@example.com",
+                "self": True,
+                "organizer": True,
+                "responseStatus": "needsAction",
+            },
+            {"email": "other@example.com"},
+        ],
+        response_status="declined",
+    )
+    body = service.events.return_value.patch.call_args.kwargs["body"]
+    me = next(a for a in body["attendees"] if a["email"] == "me@example.com")
+    assert me == {"email": "me@example.com", "responseStatus": "declined"}
+    assert "self" not in me
+    assert "organizer" not in me
 
 
 def test_patch_response_status_requires_self() -> None:
@@ -241,11 +275,18 @@ def test_patch_response_status_requires_self() -> None:
         )
 
 
-def test_attendee_to_api_includes_self() -> None:
+def test_attendee_to_api_omits_readonly_fields() -> None:
     from googlekit.gcalendar.models import Attendee
 
-    body = Attendee(email="me@example.com", self=True).to_api()
-    assert body["self"] is True
+    body = Attendee(
+        email="me@example.com",
+        self=True,
+        organizer=True,
+        response_status="tentative",
+    ).to_api()
+    assert body == {"email": "me@example.com", "responseStatus": "tentative"}
+    assert "self" not in body
+    assert "organizer" not in body
 
 
 def test_calendar_client_managers() -> None:
