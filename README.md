@@ -325,11 +325,13 @@ When you call `GoogleKit.auto()`, credential discovery tries:
 ### GoogleKit
 
 ```python
-GoogleKit.from_oauth(client_secrets, token_path=None, *, services=None, profile=...)
-GoogleKit.from_service_account(credentials_file, subject=None, *, services=None, profile=...)
-GoogleKit.from_adc(*, services=None, profile=..., quota_project_id=None)
-GoogleKit.auto(*, services=None, profile=...)
+GoogleKit.from_oauth(client_secrets, token_path=None, *, services=[...], profile=...)
+GoogleKit.from_service_account(credentials_file, subject=None, *, services=[...], profile=...)
+GoogleKit.from_adc(*, services=[...], profile=..., quota_project_id=None)
+GoogleKit.auto(*, services=[...], profile=...)
 ```
+
+`services` (or explicit `scopes=`) is **required** on unified constructors so GoogleKit never requests every Workspace write scope by default.
 
 Lazy accessors: `client.drive`, `client.sheets`, `client.calendar`, `client.docs`, `client.slides`.
 
