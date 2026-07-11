@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from googlekit.core.exceptions import ValidationError
+from googlekit.core.exceptions import NotFoundError, ValidationError
 from googlekit.core.transport import Transport
 from googlekit.core.types import PresentationId
 from googlekit.core.validation import require_non_empty
-from googlekit.gslides.models import AffineTransform, BatchUpdateResult, Size
+from googlekit.gslides.models import AffineTransform, BatchUpdateResult, Size, pt_to_emu
 from googlekit.gslides.presentations import PresentationsManager
 
 
@@ -104,18 +104,36 @@ class ImagesManager:
     ) -> BatchUpdateResult:
         """Set image position and size via an absolute transform.
 
-        Scale is expressed in EMUs so a 1x1 EMU source maps to the target size.
+        Scale is ``target_emu / current_size_emu`` so it matches create paths
+        that set full EMU size with ``scaleX/Y = 1``.
         """
         require_non_empty(object_id, "object_id")
         if width_pt <= 0 or height_pt <= 0:
             raise ValidationError("width_pt and height_pt must be positive")
-        from googlekit.gslides.models import pt_to_emu
-
+        presentation = self._presentations.get(presentation_id)
+        element = None
+        for slide in presentation.slides:
+            for candidate in slide.elements:
+                if candidate.object_id == object_id:
+                    element = candidate
+                    break
+            if element is not None:
+                break
+        if element is None:
+            raise NotFoundError(f"Page element {object_id!r} not found in presentation")
+        if element.size is None or element.size.width_emu <= 0 or element.size.height_emu <= 0:
+            raise ValidationError(
+                f"Element {object_id!r} has no usable size; cannot compute resize scale"
+            )
+        current = element.transform or AffineTransform()
         tf = AffineTransform(
-            scale_x=float(pt_to_emu(width_pt)),
-            scale_y=float(pt_to_emu(height_pt)),
+            scale_x=float(pt_to_emu(width_pt)) / element.size.width_emu,
+            scale_y=float(pt_to_emu(height_pt)) / element.size.height_emu,
+            shear_x=current.shear_x,
+            shear_y=current.shear_y,
             translate_x_emu=float(pt_to_emu(x_pt)),
             translate_y_emu=float(pt_to_emu(y_pt)),
+            unit=current.unit,
         )
         return self._presentations.batch_update(
             presentation_id,
