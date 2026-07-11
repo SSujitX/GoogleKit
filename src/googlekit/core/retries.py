@@ -68,7 +68,9 @@ def call_with_retries(
         The result of ``fn``.
 
     Raises:
-        RetryExhaustedError: When attempts are exhausted.
+        RetryExhaustedError: When retryable failures exhaust ``max_attempts``.
+            The original exception is available as ``last_error``.
+        BaseException: Non-retryable errors are re-raised immediately.
     """
     policy = policy or RetryPolicy()
     if not policy.enabled or policy.max_attempts <= 1:
@@ -83,8 +85,13 @@ def call_with_retries(
             retryable = (
                 is_retryable(exc) if is_retryable is not None else _default_is_retryable(exc)
             )
-            if not retryable or attempt >= policy.max_attempts - 1:
+            if not retryable:
                 raise
+            if attempt >= policy.max_attempts - 1:
+                raise RetryExhaustedError(
+                    attempts=policy.max_attempts,
+                    last_error=exc,
+                ) from exc
             retry_after = getattr(exc, "retry_after", None)
             delay = policy.delay_for_attempt(
                 attempt,
