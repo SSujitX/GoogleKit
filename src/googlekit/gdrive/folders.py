@@ -128,8 +128,22 @@ class FoldersManager:
             raise ValidationError(f"Not a directory: {root}")
         policy = OverwritePolicy(overwrite)
         if create_root:
-            destination = self.create(root.name, parent_id=parent_id)
-            dest_id = destination.id
+            existing_root = self._files.find_by_name(
+                root.name,
+                parents=[parent_id] if parent_id else ["root"],
+                mime_type=DRIVE_FOLDER_MIME,
+            )
+            if existing_root is not None:
+                if policy is OverwritePolicy.ERROR:
+                    raise ValidationError(
+                        f"Remote folder already exists: {root.name!r}. "
+                        "Pass overwrite=OverwritePolicy.OVERWRITE or SKIP."
+                    )
+                destination = DriveFolder.from_file(existing_root)
+                dest_id = destination.id
+            else:
+                destination = self.create(root.name, parent_id=parent_id)
+                dest_id = destination.id
         else:
             if parent_id is None:
                 raise ValidationError("parent_id is required when create_root=False")
@@ -189,10 +203,28 @@ class FoldersManager:
                     logger.warning("Skipping symlink cycle or broken link: %s", item)
                     continue
             if item.is_dir():
-                sub = self.create(item.name, parent_id=drive_folder_id)
+                existing = self._files.find_by_name(
+                    item.name,
+                    parents=[drive_folder_id],
+                    mime_type=DRIVE_FOLDER_MIME,
+                )
+                if existing is not None:
+                    if policy is OverwritePolicy.SKIP:
+                        # Still recurse into existing folder to sync children.
+                        sub_id = existing.id
+                    elif policy is OverwritePolicy.ERROR:
+                        raise ValidationError(
+                            f"Remote folder already exists: {item.name!r} under {drive_folder_id}. "
+                            "Pass overwrite=OverwritePolicy.OVERWRITE or SKIP."
+                        )
+                    else:
+                        sub_id = existing.id
+                else:
+                    sub = self.create(item.name, parent_id=drive_folder_id)
+                    sub_id = sub.id
                 self._upload_tree(
                     item,
-                    sub.id,
+                    sub_id,
                     policy=policy,
                     progress=progress,
                     seen=seen,
@@ -239,7 +271,11 @@ class FoldersManager:
                     max_depth=max_depth,
                 )
                 continue
-            target = local_dir / child.name
+            if child.is_google_native:
+                # Default export Google Docs/Sheets/Slides to PDF when syncing trees.
+                target = local_dir / f"{child.name}.pdf"
+            else:
+                target = local_dir / child.name
             if target.exists():
                 if policy is OverwritePolicy.SKIP:
                     continue
@@ -249,11 +285,10 @@ class FoldersManager:
                         "Pass overwrite=OverwritePolicy.OVERWRITE or SKIP."
                     )
             if child.is_google_native:
-                # Default export Google Docs/Sheets/Slides to PDF when syncing trees.
                 self._files.export(
                     child.id,
                     "pdf",
-                    local_dir / f"{child.name}.pdf",
+                    target,
                     progress=progress,
                 )
             else:
