@@ -100,6 +100,33 @@ def test_oauth_reauths_when_cached_scopes_insufficient(client_secrets_file: Path
     flow.run_local_server.assert_called_once()
 
 
+def test_oauth_uses_actual_granted_scopes_for_granular_consent(
+    client_secrets_file: Path,
+) -> None:
+    provider = OAuthCredentialProvider(
+        client_secrets_file,
+        scopes=ScopeSet.of(Scope.DRIVE_FILE, Scope.SPREADSHEETS),
+        token_store=InMemoryTokenStore(),
+    )
+    creds = SimpleNamespace(
+        scopes=[str(Scope.DRIVE_FILE), str(Scope.SPREADSHEETS)],
+        granted_scopes=[str(Scope.DRIVE_FILE)],
+    )
+
+    assert provider._token_covers_required(creds) is False
+
+
+def test_oauth_full_scope_covers_narrow_requested_scope(client_secrets_file: Path) -> None:
+    provider = OAuthCredentialProvider(
+        client_secrets_file,
+        scopes=ScopeSet.of(Scope.DRIVE_FILE),
+        token_store=InMemoryTokenStore(),
+    )
+    creds = SimpleNamespace(scopes=[str(Scope.DRIVE)], granted_scopes=None)
+
+    assert provider._token_covers_required(creds) is True
+
+
 def test_oauth_refresh_expired_token(client_secrets_file: Path) -> None:
     store = InMemoryTokenStore()
     store.save("{}")
