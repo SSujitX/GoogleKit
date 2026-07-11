@@ -22,13 +22,23 @@ class ChangesManager:
 
     @property
     def _sd(self) -> dict[str, bool]:
+        """Params for getStartPageToken (supportsAllDrives only)."""
+        return shared_drive_params(self._transport.config.supports_all_drives)
+
+    @property
+    def _sd_list(self) -> dict[str, bool]:
+        """Params for changes.list (includes includeItemsFromAllDrives)."""
         return shared_drive_params(
             self._transport.config.supports_all_drives,
             list_mode=True,
         )
 
     def get_start_page_token(self, *, drive_id: str | None = None) -> str:
-        """Return a page token for future ``list`` / ``iterate`` calls."""
+        """Return a page token for future ``list`` / ``iterate`` calls.
+
+        Official ``changes.getStartPageToken`` accepts ``driveId`` and
+        ``supportsAllDrives`` only — not ``includeItemsFromAllDrives``.
+        """
         kwargs: dict[str, Any] = {**self._sd}
         if drive_id:
             kwargs["driveId"] = drive_id
@@ -96,7 +106,7 @@ class ChangesManager:
             "pageSize": page_size,
             "includeRemoved": include_removed,
             "fields": fields,
-            **self._sd,
+            **self._sd_list,
         }
         if drive_id:
             kwargs["driveId"] = drive_id
