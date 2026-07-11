@@ -9,8 +9,8 @@
 <p align="center">
   <a href="https://github.com/SSujitX/GoogleKit">GitHub</a> •
   <a href="https://pypi.org/project/googlekit/">PyPI</a> •
-  <a href="https://github.com/SSujitX/GoogleKit/issues">Issues</a> •
-  <a href="https://github.com/SSujitX/GoogleKit/blob/master/docs/index.md">Docs</a>
+  <a href="https://ssujitx.github.io/GoogleKit/">Documentation</a> •
+  <a href="https://github.com/SSujitX/GoogleKit/issues">Issues</a>
 </p>
 
 # GoogleKit
@@ -27,6 +27,7 @@ Whether you need a Python Google Drive client, a Google Sheets Python library, a
 
 - [Features](#features)
 - [Supported Services](#supported-services)
+- [Documentation](#documentation)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Authentication Methods](#authentication-methods)
@@ -70,6 +71,24 @@ Whether you need a Python Google Drive client, a Google Sheets Python library, a
 
 Enable each API in [Google Cloud Console → APIs & Services → Library](https://console.cloud.google.com/apis/library).
 
+## Documentation
+
+**Full docs:** [https://ssujitx.github.io/GoogleKit/](https://ssujitx.github.io/GoogleKit/)
+
+| Topic | Link |
+| ----- | ---- |
+| Installation | [Docs → Installation](https://ssujitx.github.io/GoogleKit/installation/) |
+| Authentication (OAuth, ADC, service account) | [Docs → Authentication](https://ssujitx.github.io/GoogleKit/authentication/) |
+| OAuth scopes | [Docs → Scopes](https://ssujitx.github.io/GoogleKit/scopes/) |
+| Errors | [Docs → Errors](https://ssujitx.github.io/GoogleKit/errors/) |
+| **Google Drive API** — files, folders, sharing, changes, export | [Docs → Drive](https://ssujitx.github.io/GoogleKit/drive/) |
+| **Google Sheets API** — values, worksheets, formatting | [Docs → Sheets](https://ssujitx.github.io/GoogleKit/sheets/) |
+| **Google Calendar API** — events, Meet, free/busy, sync | [Docs → Calendar](https://ssujitx.github.io/GoogleKit/calendar/) |
+| **Google Docs API** — text, tables, UTF-16 indexes | [Docs → Docs](https://ssujitx.github.io/GoogleKit/docs/) |
+| **Google Slides API** — pages, shapes, images, templates | [Docs → Slides](https://ssujitx.github.io/GoogleKit/slides/) |
+
+The README covers install, auth, and quick examples. Method-level reference, recipes, and pitfalls live on the docs site.
+
 ## Installation
 
 ```bash
@@ -94,13 +113,13 @@ Google API client libraries are included by default — no extras required.
 from googlekit import GoogleKit
 
 # Auto-authenticate with ADC or local credential JSON
-kit = GoogleKit.auto(services=["gdrive", "gsheets"])
+client = GoogleKit.auto(services=["gdrive", "gsheets"])
 
-page = kit.drive.files.list(folder_id="root")
+page = client.drive.files.list(folder_id="root")
 for f in page.items:
     print(f.name)
 
-kit.sheets.values.write(
+client.sheets.values.write(
     "spreadsheet_id",
     "Sheet1!A1",
     [["Name", "Score"], ["Ada", 98]],
@@ -151,9 +170,9 @@ gcloud auth application-default login
 ```python
 from googlekit import GoogleKit
 
-kit = GoogleKit.from_adc(services=["gdrive"])
+client = GoogleKit.from_adc(services=["gdrive"])
 # or
-kit = GoogleKit.auto(services=["gdrive"])
+client = GoogleKit.auto(services=["gdrive"])
 ```
 
 #### How it Works
@@ -201,13 +220,13 @@ If key creation is blocked (`iam.disableServiceAccountKeyCreation`):
 from googlekit import GoogleKit
 
 # Explicit
-kit = GoogleKit.from_service_account(
+client = GoogleKit.from_service_account(
     "service_account.json",
     services=["gdrive", "gsheets"],
 )
 
 # Auto-detect (if service_account.json is in the working directory)
-kit = GoogleKit.auto(services=["gdrive"])
+client = GoogleKit.auto(services=["gdrive"])
 ```
 
 | Aspect | OAuth2 | Service Account |
@@ -247,7 +266,7 @@ For desktop apps that access **your** Google account. Opens a browser once.
 ```python
 from googlekit import GoogleKit
 
-kit = GoogleKit.from_oauth(
+client = GoogleKit.from_oauth(
     "client_secrets.json",
     token_path="token.json",  # optional; defaults to OS config dir
     services=["gdrive", "gsheets", "gcalendar"],
@@ -277,9 +296,9 @@ $env:GOOGLE_APPLICATION_CREDENTIALS="C:\path\to\credentials.json"
 ```
 
 ```python
-kit = GoogleKit.from_adc(services=["gdrive"])
+client = GoogleKit.from_adc(services=["gdrive"])
 # or
-kit = GoogleKit.auto(services=["gdrive"])
+client = GoogleKit.auto(services=["gdrive"])
 ```
 
 ---
@@ -312,9 +331,9 @@ GoogleKit.from_adc(*, services=None, profile=..., quota_project_id=None)
 GoogleKit.auto(*, services=None, profile=...)
 ```
 
-Lazy accessors: `kit.drive`, `kit.sheets`, `kit.calendar`, `kit.docs`, `kit.slides`.
+Lazy accessors: `client.drive`, `client.sheets`, `client.calendar`, `client.docs`, `client.slides`.
 
-### Drive (`kit.drive`)
+### Drive (`client.drive`)
 
 | Manager | Highlights |
 | ------- | ---------- |
@@ -323,7 +342,7 @@ Lazy accessors: `kit.drive`, `kit.sheets`, `kit.calendar`, `kit.docs`, `kit.slid
 | `permissions` | `share_user`, `share_group`, `share_domain`, `share_anyone` (needs `public=True`), `create_shareable_link`, `list`, `remove` |
 | `changes` | `get_start_page_token`, `list`, `iterate` |
 
-### Sheets (`kit.sheets`)
+### Sheets (`client.sheets`)
 
 | Manager | Highlights |
 | ------- | ---------- |
@@ -331,7 +350,7 @@ Lazy accessors: `kit.drive`, `kit.sheets`, `kit.calendar`, `kit.docs`, `kit.slid
 | `spreadsheets` / `worksheets` | create, get, add/delete/duplicate sheets |
 | `formatting` | text, number formats, borders, merge |
 
-### Calendar (`kit.calendar`)
+### Calendar (`client.calendar`)
 
 | Manager | Highlights |
 | ------- | ---------- |
@@ -343,8 +362,8 @@ Lazy accessors: `kit.drive`, `kit.sheets`, `kit.calendar`, `kit.docs`, `kit.slid
 
 | Client | Highlights |
 | ------ | ---------- |
-| `kit.docs` | `documents.create` / `get`, content helpers, tables, `export` / `share` via Drive |
-| `kit.slides` | `presentations.create` / `get`, pages, elements, tables, images, text replace |
+| `client.docs` | `documents.create` / `get`, content helpers, tables, `export` / `share` via Drive |
+| `client.slides` | `presentations.create` / `get`, pages, elements, tables, images, text replace |
 
 ---
 
@@ -355,8 +374,8 @@ Lazy accessors: `kit.drive`, `kit.sheets`, `kit.calendar`, `kit.docs`, `kit.slid
 ```python
 from googlekit import GoogleKit
 
-kit = GoogleKit.auto(services=["gdrive"])
-drive = kit.drive
+client = GoogleKit.auto(services=["gdrive"])
+drive = client.drive
 
 page = drive.files.list(folder_id="root")
 for f in page.items:
@@ -380,14 +399,14 @@ print(link)
 ### Sheets
 
 ```python
-kit = GoogleKit.auto(services=["gsheets"])
+client = GoogleKit.auto(services=["gsheets"])
 
-kit.sheets.values.write(
+client.sheets.values.write(
     "spreadsheet_id",
     "Sheet1!A1:B2",
     [["Name", "Score"], ["Ada", 98]],
 )
-rows = kit.sheets.values.read("spreadsheet_id", "Sheet1!A1:B10")
+rows = client.sheets.values.read("spreadsheet_id", "Sheet1!A1:B10")
 print(rows)
 ```
 
@@ -396,11 +415,11 @@ print(rows)
 ```python
 from datetime import UTC, datetime, timedelta
 
-kit = GoogleKit.auto(services=["gcalendar"])
+client = GoogleKit.auto(services=["gcalendar"])
 start = datetime.now(UTC)
 end = start + timedelta(hours=1)
 
-event = kit.calendar.events.create(
+event = client.calendar.events.create(
     "primary",
     summary="Standup",
     start=start,
@@ -413,12 +432,12 @@ print(event.id)
 ### Docs & Slides
 
 ```python
-kit = GoogleKit.auto(services=["gdocs", "gslides", "gdrive"])
+client = GoogleKit.auto(services=["gdocs", "gslides", "gdrive"])
 
-doc = kit.docs.documents.create("Proposal")
-kit.docs.content.insert_text(doc.id, "Hello from GoogleKit\n", index=1)
+doc = client.docs.documents.create("Proposal")
+client.docs.content.insert_text(doc.id, "Hello from GoogleKit\n", index=1)
 
-deck = kit.slides.presentations.create("Pitch Deck")
+deck = client.slides.presentations.create("Pitch Deck")
 print(deck.id)
 ```
 
@@ -439,7 +458,7 @@ GoogleKit uses **least-privilege** scope presets per service:
 from googlekit import GoogleKit
 from googlekit.auth.scopes import ScopeProfile
 
-kit = GoogleKit.from_oauth(
+client = GoogleKit.from_oauth(
     "client_secrets.json",
     services=["gdrive"],
     profile=ScopeProfile.READONLY,
@@ -459,10 +478,10 @@ GoogleKit raises typed exceptions (it does **not** return `{"success": false}` d
 from googlekit import GoogleKit
 from googlekit.core.exceptions import GoogleKitError, NotFoundError, ValidationError
 
-kit = GoogleKit.auto(services=["gdrive"])
+client = GoogleKit.auto(services=["gdrive"])
 
 try:
-    kit.drive.files.get("missing-id")
+    client.drive.files.get("missing-id")
 except NotFoundError as exc:
     print(exc)
 except ValidationError as exc:
