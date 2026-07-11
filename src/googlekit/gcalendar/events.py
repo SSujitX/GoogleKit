@@ -43,19 +43,27 @@ class EventsManager:
         show_deleted: bool = False,
         time_zone: str | None = None,
     ) -> Page[Event]:
-        """List events (one page). Time bounds must be timezone-aware."""
+        """List events (one page). Time bounds must be timezone-aware.
+
+        With ``sync_token`` (incremental sync), Google requires deleted events in
+        the result set: ``showDeleted`` cannot be ``False``. Incompatible filters
+        (``timeMin`` / ``timeMax`` / ``orderBy`` / ``q``) are omitted.
+        """
         cid = require_non_empty(calendar_id, "calendar_id")
         kwargs: dict[str, Any] = {
             "calendarId": cid,
             "maxResults": page_size,
-            "singleEvents": single_events,
-            "showDeleted": show_deleted,
         }
         if page_token:
             kwargs["pageToken"] = page_token
         if sync_token:
+            # Incremental sync: deleted events are always included; showDeleted=false → 400.
             kwargs["syncToken"] = sync_token
+            kwargs["showDeleted"] = True
+            kwargs["singleEvents"] = single_events
         else:
+            kwargs["singleEvents"] = single_events
+            kwargs["showDeleted"] = show_deleted
             if time_min is not None:
                 aware = ensure_aware(time_min, default_timezone=self._default_tz(), name="time_min")
                 kwargs["timeMin"] = to_rfc3339(aware)
