@@ -102,6 +102,16 @@ def test_full_calendar_covers_narrower_scopes() -> None:
     assert full.covers(needed)
 
 
+def test_missing_excludes_narrow_scopes_covered_by_full() -> None:
+    # Full Drive covers drive.file; only the unrelated Sheets scope is missing.
+    granted = ScopeSet.of(Scope.DRIVE)
+    needed = ScopeSet.of(Scope.DRIVE_FILE, Scope.SPREADSHEETS)
+    missing = granted.missing(needed)
+    assert Scope.SPREADSHEETS in missing
+    assert Scope.DRIVE_FILE not in missing
+    assert not granted.covers(needed)
+
+
 def test_from_iterable() -> None:
     s = ScopeSet.from_iterable([Scope.DOCUMENTS, "https://www.googleapis.com/auth/presentations"])
     assert s.includes(Scope.DOCUMENTS)
