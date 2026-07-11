@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from googlekit.core.configuration import ClientConfig
 from googlekit.core.pagination import Page
@@ -98,3 +99,25 @@ def test_sheets_shortcuts_delegate() -> None:
 def test_drive_runtime_checkable() -> None:
     client = DriveClient(FakeProvider(), config=ClientConfig())
     assert isinstance(client, DriveAPI)
+
+
+def test_download_shortcut_adds_export_extension() -> None:
+    client = DriveClient(FakeProvider(), config=ClientConfig())
+    files = MagicMock()
+    files.get.return_value = DriveFile(
+        id="doc1",
+        name="Quarterly report",
+        mime_type="application/vnd.google-apps.document",
+    )
+    client._files = files
+
+    with patch("googlekit.gdrive.shortcuts.Path.cwd", return_value=Path("C:/work")):
+        client.download_file("doc1", export_format="pdf")
+
+    destination = files.download_path.call_args.args[1]
+    assert destination == Path("C:/work/Quarterly report.pdf")
+
+    with patch("googlekit.gdrive.shortcuts.Path.cwd", return_value=Path("C:/work")):
+        client.download_file("doc1", export_format="application/pdf")
+    destination = files.download_path.call_args.args[1]
+    assert destination == Path("C:/work/Quarterly report.pdf")

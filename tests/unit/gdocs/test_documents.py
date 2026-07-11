@@ -79,6 +79,48 @@ def test_document_from_api() -> None:
     assert doc.named_ranges["greeting"][0].start_index == 1
 
 
+def test_document_parses_named_ranges_from_nested_tabs() -> None:
+    raw = {
+        "documentId": "doc-tabs",
+        "title": "Tabbed",
+        "tabs": [
+            {
+                "tabProperties": {"tabId": "tab-1", "title": "First"},
+                "documentTab": {
+                    "body": {"content": []},
+                    "namedRanges": {
+                        "target": {
+                            "namedRanges": [
+                                {"ranges": [{"startIndex": 2, "endIndex": 7}]}
+                            ]
+                        }
+                    },
+                },
+                "childTabs": [
+                    {
+                        "tabProperties": {"tabId": "tab-child", "title": "Child"},
+                        "documentTab": {
+                            "body": {"content": []},
+                            "namedRanges": {
+                                "target": {
+                                    "namedRanges": [
+                                        {"ranges": [{"startIndex": 1, "endIndex": 3}]}
+                                    ]
+                                }
+                            },
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    doc = Document.from_api(raw)
+    assert [tab.tab_id for tab in doc.tabs] == ["tab-1", "tab-child"]
+    assert [r.tab_id for r in doc.named_ranges["target"]] == ["tab-1", "tab-child"]
+    assert doc.tabs[0].named_ranges["target"][0].start_index == 2
+
+
 def test_create_and_batch_update(transport: Transport) -> None:
     mgr = DocumentsManager(transport)
     mock_service = MagicMock()

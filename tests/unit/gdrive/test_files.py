@@ -149,6 +149,8 @@ def test_resolve_export_mime_helpers() -> None:
     )
     with pytest.raises(ValidationError):
         resolve_export_mime("application/pdf", "docx")
+    with pytest.raises(ValidationError, match="files.download"):
+        resolve_export_mime("application/vnd.google-apps.vid", "mp4")
 
 
 def test_download_google_native_requires_export(
