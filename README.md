@@ -89,6 +89,18 @@ Enable each API in [Google Cloud Console → APIs & Services → Library](https:
 
 The README covers install, auth, and quick examples. Method-level reference, recipes, and pitfalls live on the docs site.
 
+### Official Google API documentation
+
+| Product | Guides | Reference |
+| ------- | ------ | --------- |
+| Google Workspace | [Workspace APIs](https://developers.google.com/workspace) | — |
+| Drive | [Guides](https://developers.google.com/workspace/drive/api/guides/about-sdk) | [REST v3](https://developers.google.com/workspace/drive/api/reference/rest/v3) |
+| Sheets | [Guides](https://developers.google.com/workspace/sheets/api/guides/concepts) | [REST](https://developers.google.com/workspace/sheets/api/reference/rest) |
+| Calendar | [Guides](https://developers.google.com/workspace/calendar/api/guides/overview) | [REST v3](https://developers.google.com/workspace/calendar/api/v3/reference) |
+| Docs | [Guides](https://developers.google.com/workspace/docs/api/how-tos/overview) | [REST](https://developers.google.com/workspace/docs/api/reference/rest) |
+| Slides | [Guides](https://developers.google.com/workspace/slides/api/guides/overview) | [REST](https://developers.google.com/workspace/slides/api/reference/rest) |
+| OAuth / scopes | [OAuth 2.0](https://developers.google.com/identity/protocols/oauth2) | [Scopes](https://developers.google.com/identity/protocols/oauth2/scopes) |
+
 ## Installation
 
 ```bash
