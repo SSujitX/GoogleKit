@@ -29,7 +29,8 @@ before any public disclosure.
 GoogleKit never requires committing secrets. Follow these practices:
 
 - Keep `client_secret*.json`, service-account keys, and OAuth tokens out of git
-- Prefer OS user config paths for tokens (default `FileTokenStore` location)
+- Default token path is `./token.json` in the working directory — ensure it stays gitignored
+- Or pass `token_path=` / `user_config_token_path()` for an OS user-config location
 - Restrict file permissions on credential and token files where the OS allows
 - Rotate compromised keys immediately in Google Cloud Console
 - Use least-privilege OAuth scopes (`ScopeProfile` / presets)
