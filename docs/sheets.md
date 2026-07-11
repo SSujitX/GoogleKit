@@ -1,3 +1,10 @@
+---
+title: Google Sheets API Python client (GoogleKit)
+description: >-
+  Read, write, append, and format Google Sheets with GoogleKit. Typed SheetsClient
+  for Sheets API v4 — values, worksheets, A1 ranges, and batch updates.
+---
+
 # Google Sheets
 
 Install:
@@ -7,6 +14,12 @@ uv add googlekit
 ```
 
 Enable the **Google Sheets API** in Google Cloud Console. Sharing or Drive-side export also needs the Drive API and scopes.
+
+**Official Google docs:** [Sheets API guides](https://developers.google.com/workspace/sheets/api/guides/concepts) ·
+[REST reference](https://developers.google.com/workspace/sheets/api/reference/rest) ·
+[Values](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values) ·
+[A1 notation](https://developers.google.com/workspace/sheets/api/guides/concepts#cell) ·
+[Enable API](https://console.cloud.google.com/apis/library/sheets.googleapis.com)
 
 ## Client
 
