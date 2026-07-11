@@ -27,11 +27,14 @@ Two usage styles (both supported):
 ```python
 from googlekit import GoogleKit
 client = GoogleKit.from_oauth("client_secrets.json", services=["gdrive", "gsheets"])
-client.drive.files.list(...)
+client.drive.files.list(...)           # managers
+client.drive.list_files(...)           # optional shortcuts (same + hover docs)
 
 from googlekit.gdrive import DriveClient
 drive = DriveClient.from_oauth("client_secrets.json")
 ```
+
+Shortcuts are declared on `DriveAPI` / `SheetsAPI` / … so IDE autocomplete after `drive.` shows both managers and flat helpers.
 
 ---
 
@@ -100,6 +103,17 @@ RELEASE.md             # Notes for the current release section ## [X.Y.Z]
 ---
 
 ## 4. Authentication
+
+### User-facing methods
+
+| # | Method | Factory | Notes |
+| - | ------ | ------- | ----- |
+| 1 | ADC | `from_adc()` | Explicit ADC only |
+| 2 | Service account | `from_service_account()` | JSON key; optional `subject` |
+| 3 | OAuth desktop | `from_oauth()` | Browser consent; token cache |
+| 4 | Auto-detect | `auto()` | ADC → SA file → OAuth file (not the same as `from_adc`) |
+
+Do **not** document `auto()` as an alias of `from_adc()` — it is a separate discovery factory.
 
 ### Providers (`auth/`)
 
@@ -210,7 +224,7 @@ Never log tokens or Authorization headers.
 
 ## 7. Unified client wiring (`client.py`)
 
-- Lazy properties: `.drive`, `.sheets`, `.calendar`, `.docs`, `.slides` (typed as `DriveAPI` / `SheetsAPI` / … so IDE autocomplete shows managers, not `from_oauth`)
+- Lazy properties: `.drive`, `.sheets`, `.calendar`, `.docs`, `.slides` (typed as `DriveAPI` / `SheetsAPI` / … so IDE autocomplete shows managers **and** shortcuts, not `from_oauth`)
 - Shared `CredentialProvider` + `ClientConfig` across services
 - `share_provider(client)` for Docs/Slides Drive bridge or custom multi-client setups
 - `_primary_extra` picks first service for `require_extra` messaging
@@ -398,11 +412,20 @@ from googlekit import GoogleKit
 from googlekit.auth.scopes import ScopeProfile
 
 # Always pass services= (or scopes=)
-client = GoogleKit.auto(services=["gdrive"], profile=ScopeProfile.READWRITE)
+client = GoogleKit.auto(services=["gdrive"], profile=ScopeProfile.FULL)
 
+# Managers and optional shortcuts (both valid; both on DriveAPI for IDE)
 page = client.drive.files.list(folder_id="root", page_size=50)
+page = client.drive.list_files(folder_id="root", page_size=50)
 for f in page.items:
     print(f.name, f.id)
+
+# Sheets / Calendar / Docs / Slides — same dual style
+client.sheets.values.write("sid", "A1", [["x"]])
+client.sheets.write_values("sid", "A1", [["x"]])
+client.calendar.create_event("primary", summary="X", start=..., end=...)
+client.docs.create_document("Hello")          # or documents.create
+client.slides.create_presentation("Deck")     # or presentations.create
 ```
 
 ```python
