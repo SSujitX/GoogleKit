@@ -50,11 +50,37 @@ Artifacts appear under `dist/` (wheel + sdist).
 
 ## Trusted Publishing (required for PyPI)
 
-Requirements on PyPI:
+You do **not** need a manual first upload if you register a **pending publisher** first.
+PyPI will create the `googlekit` project on the first successful OIDC publish from GitHub Actions.
+See [Creating a PyPI project with a Trusted Publisher](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/).
 
-1. Create a pending publisher for the project
-2. Point it at this GitHub repository and the `publish.yml` workflow
-3. Leave the GitHub Environment field empty (or create an environment and add it to the workflow later)
+### First-time setup (before any tag)
+
+1. Log in to [pypi.org](https://pypi.org/) → account **Publishing** (pending publisher page)
+2. Add a GitHub pending publisher:
+   - **PyPI project name:** `googlekit` (must match `pyproject.toml`)
+   - **Owner:** `SSujitX`
+   - **Repository:** `GoogleKit`
+   - **Workflow name:** `publish.yml`
+   - **Environment name:** leave empty (unless you add one in the workflow)
+3. Save — the publisher stays pending until the first tag publish
+4. Push `vX.Y.Z` → workflow creates the project and converts the publisher to normal
+
+!!! warning "Name race"
+    A pending publisher does **not** reserve the name until the first upload.
+    Publish soon after registering it.
+
+### Optional: manual first upload
+
+If you prefer, you can still create the project once by hand:
+
+```bash
+uv build
+uv publish   # prompts / uses a PyPI API token once
+```
+
+Then add a normal Trusted Publisher under the project’s **Publishing** settings and remove the token.
+Later releases should use the tag workflow only.
 
 ## TestPyPI
 
