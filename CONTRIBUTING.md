@@ -62,7 +62,7 @@ Pushing a version tag (`v*`) runs [`.github/workflows/publish.yml`](.github/work
 ### Release steps
 
 1. Write `## [X.Y.Z] - YYYY-MM-DD` in [`RELEASE.md`](RELEASE.md)
-2. Set `version = "X.Y.Z"` in `pyproject.toml` (keep `USER_AGENT` in sync)
+2. Set `version = "X.Y.Z"` in `pyproject.toml` only, then `uv sync`
 3. Commit on `main` / `master`
 4. Tag and push:
 
