@@ -115,6 +115,13 @@ def call_with_retries(
 def _default_is_retryable(exc: BaseException) -> bool:
     if isinstance(exc, RateLimitError):
         return True
+    # Network / transport failures (timeouts, resets, DNS) are transient.
+    from googlekit.core.exceptions import TransportError
+
+    if isinstance(exc, TransportError):
+        return True
+    if isinstance(exc, (TimeoutError, ConnectionError, OSError)):
+        return True
     status = getattr(exc, "status_code", None)
     if isinstance(status, int) and should_retry_status(status):
         return True
