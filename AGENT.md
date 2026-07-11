@@ -189,6 +189,21 @@ Installed apps **cannot** incremental-authorize.
 
 Docs/Slides **export/share** need Drive scopes — GoogleKit **never** silently adds them. Local check → `InsufficientScopesError`.
 
+Drive export compatibility notes:
+
+- Google Vids cannot use `files.export`; Google requires the long-running
+  `files.download` operation. Until that operation is implemented, raise a clear
+  `ValidationError` rather than issuing an invalid export request.
+- When a shortcut chooses the destination for an exported Google-native file,
+  append the correct extension for short format names and full MIME types.
+
+Docs tab compatibility notes:
+
+- `documents.get` requests `includeTabsContent=True` by default.
+- Parse nested `document.tabs`, including each `documentTab.body` and
+  `documentTab.namedRanges`; retain each range's `tabId` and aggregate ranges on
+  the public `Document` model.
+
 ---
 
 ## 6. Core runtime
