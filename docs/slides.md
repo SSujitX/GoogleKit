@@ -1,8 +1,21 @@
+---
+title: Google Slides API Python client (GoogleKit)
+description: >-
+  Build Google Slides presentations with GoogleKit — pages, shapes, images,
+  tables, and template text replace for Slides API v1.
+---
+
 # Google Slides
 
 Install: `uv add googlekit`
 
-Enable the **Google Slides API** in Google Cloud Console. Export and sharing go through the Drive API — install the `gdrive` extra and request Drive scopes yourself; GoogleKit never adds them silently.
+Enable the **Google Slides API** in Google Cloud Console. Export and sharing go through the Drive API — request Drive scopes yourself when needed; GoogleKit never adds them silently.
+
+**Official Google docs:** [Slides API guides](https://developers.google.com/workspace/slides/api/guides/overview) ·
+[REST reference](https://developers.google.com/workspace/slides/api/reference/rest) ·
+[presentations](https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations) ·
+[Page elements](https://developers.google.com/workspace/slides/api/guides/add-image) ·
+[Enable API](https://console.cloud.google.com/apis/library/slides.googleapis.com)
 
 ## Client
 
