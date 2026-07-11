@@ -1,7 +1,18 @@
+---
+title: GoogleKit errors, retries, and HTTP mapping
+description: >-
+  Exception hierarchy for GoogleKit — NotFoundError, RateLimitError, ValidationError,
+  retries, and how googleapiclient HTTP errors map to typed exceptions.
+---
+
 # Errors
 
 All library errors derive from `GoogleKitError`.
 Site: [https://ssujitx.github.io/GoogleKit/](https://ssujitx.github.io/GoogleKit/).
+
+**Official Google docs:** [Drive errors](https://developers.google.com/workspace/drive/api/guides/handle-errors) ·
+[Sheets errors](https://developers.google.com/workspace/sheets/api/guides/handle-errors) ·
+[Calendar errors](https://developers.google.com/workspace/calendar/api/guides/errors)
 
 ```text
 GoogleKitError
@@ -30,6 +41,7 @@ HTTP/API failures from `googleapiclient` are mapped by `map_http_error`:
 | 404 | `NotFoundError` |
 | 409 / 412 | `ConflictError` |
 | 429 | `RateLimitError` (honors `Retry-After` when present) |
+| 403 + rate-limit reasons (`userRateLimitExceeded`, `rateLimitExceeded`) | `RateLimitError` |
 | 403 + quota reason | `QuotaExceededError` |
 | other | `APIError` |
 
