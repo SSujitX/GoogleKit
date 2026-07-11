@@ -69,12 +69,6 @@ for f in page.items:
 | Google Docs | [Docs](docs.md) | Documents, text, tables, UTF-16 indexes, export/share |
 | Google Slides | [Slides](slides.md) | Presentations, pages, shapes, images, tables, templates |
 
-### Maintainers
-
-| Page | What it covers |
-| ---- | -------------- |
-| [Publishing](publishing.md) | PyPI Trusted Publishing / release notes |
-
 ## Install
 
 ```bash
