@@ -44,7 +44,10 @@ class OAuthCredentialProvider:
 
     def credentials(self) -> Any:
         if self._credentials is not None and self._credentials.valid:
-            return self._credentials
+            if self._token_covers_required(self._credentials):
+                return self._credentials
+            # In-memory creds no longer cover required scopes (caller expanded).
+            self._credentials = None
         self._credentials = self._authenticate()
         return self._credentials
 
@@ -61,12 +64,21 @@ class OAuthCredentialProvider:
         raw = self._store.load()
         if raw:
             try:
-                creds = Credentials.from_authorized_user_info(  # type: ignore[no-untyped-call]
-                    json.loads(raw), list(self._scopes.values)
-                )
+                info = json.loads(raw)
+                # Do NOT pass newly requested scopes here — that would make the
+                # Credentials object claim scopes the token was never granted.
+                # Installed apps do not support incremental authorization.
+                creds = Credentials.from_authorized_user_info(info)  # type: ignore[no-untyped-call]
             except Exception:
                 logger.debug("Cached OAuth token could not be loaded; reauthorizing")
                 creds = None
+
+        if creds is not None and not self._token_covers_required(creds):
+            logger.debug(
+                "Cached OAuth token lacks required scopes; reauthorizing "
+                "(installed apps do not support incremental authorization)"
+            )
+            creds = None
 
         if creds and creds.valid:
             return creds
@@ -74,13 +86,15 @@ class OAuthCredentialProvider:
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
-                self._persist(creds)
-                return creds
+                if not self._token_covers_required(creds):
+                    creds = None
+                else:
+                    self._persist(creds)
+                    return creds
             except Exception as exc:
                 logger.debug("OAuth refresh failed; starting browser flow: %s", type(exc).__name__)
                 creds = None
 
-        # Reauthorize when scopes expanded beyond stored token.
         try:
             flow = InstalledAppFlow.from_client_secrets_file(
                 str(self._client_secrets),
@@ -95,8 +109,25 @@ class OAuthCredentialProvider:
         self._persist(creds)
         return creds
 
+    def _token_covers_required(self, creds: Any) -> bool:
+        """Return True when the stored/token scopes cover the requested set."""
+        granted = _granted_scopes(creds)
+        if not granted:
+            # Some token files omit scopes; do not assume the new request was granted.
+            return False
+        return self._scopes.values <= granted
+
     def _persist(self, creds: Any) -> None:
         try:
             self._store.save(creds.to_json())
         except Exception:
             logger.debug("Unable to persist OAuth token (non-fatal)")
+
+
+def _granted_scopes(creds: Any) -> frozenset[str]:
+    raw = getattr(creds, "scopes", None)
+    if not raw:
+        return frozenset()
+    if isinstance(raw, str):
+        return frozenset(s for s in raw.split() if s)
+    return frozenset(str(s) for s in raw)
