@@ -28,8 +28,9 @@ client = GoogleKit.from_oauth(
 ```
 
 - Tokens refresh automatically when possible
-- Expanding scopes triggers reauthorization
+- Expanding scopes beyond what the cached token was granted requires a new browser consent flow (installed apps do not support incremental authorization)
 - Default token path is under the user config directory (`FileTokenStore`), never inside the package install
+- Token files are written atomically with restrictive permissions when the OS supports them
 
 **Cloud Console setup (summary):**
 
