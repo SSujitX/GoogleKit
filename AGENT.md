@@ -203,6 +203,10 @@ Docs tab compatibility notes:
 - Parse nested `document.tabs`, including each `documentTab.body` and
   `documentTab.namedRanges`; retain each range's `tabId` and aggregate ranges on
   the public `Document` model.
+- Content helpers operating on a location or range accept and propagate
+  `tab_id`; omission intentionally uses the Docs API default tab.
+- OAuth verification prefers `credentials.granted_scopes` when available and
+  uses `ScopeSet.covers()` so full Drive/Calendar grants satisfy narrower ones.
 
 ---
 
