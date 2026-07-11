@@ -167,17 +167,36 @@ GoogleKit supports multiple authentication methods, ordered by recommendation fo
 
 The **easiest** method for local development. No JSON files to manage!
 
-#### Setup (One-time)
+#### Step-by-Step Setup
+
+**Step 1: Create a Google Cloud Project**
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Project dropdown → **New Project** → create and select it
+
+**Step 2: Enable APIs**
+
+Enable the APIs you need in
+[APIs & Services → Library](https://console.cloud.google.com/apis/library):
+
+| API | Enable |
+| --- | ------ |
+| Google Drive | [Enable Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com) |
+| Google Sheets | [Enable Sheets API](https://console.cloud.google.com/apis/library/sheets.googleapis.com) |
+| Google Calendar | [Enable Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com) |
+| Google Docs | [Enable Docs API](https://console.cloud.google.com/apis/library/docs.googleapis.com) |
+| Google Slides | [Enable Slides API](https://console.cloud.google.com/apis/library/slides.googleapis.com) |
+
+**Step 3: Install Google Cloud SDK and sign in**
 
 1. Install [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
-
 2. Login with your Google account:
 
 ```bash
 gcloud auth application-default login
 ```
 
-3. Use GoogleKit:
+**Step 4: Use GoogleKit**
 
 ```python
 from googlekit import GoogleKit
@@ -210,8 +229,16 @@ Best for servers, bots, and CI/CD. **No browser interaction.**
 
 **Step 2: Enable APIs**
 
-Enable the APIs you need (Drive, Sheets, Calendar, Docs, and/or Slides) in
-**APIs & Services → Library**.
+Enable the APIs you need in
+[APIs & Services → Library](https://console.cloud.google.com/apis/library):
+
+| API | Enable |
+| --- | ------ |
+| Google Drive | [Enable Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com) |
+| Google Sheets | [Enable Sheets API](https://console.cloud.google.com/apis/library/sheets.googleapis.com) |
+| Google Calendar | [Enable Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com) |
+| Google Docs | [Enable Docs API](https://console.cloud.google.com/apis/library/docs.googleapis.com) |
+| Google Slides | [Enable Slides API](https://console.cloud.google.com/apis/library/slides.googleapis.com) |
 
 **Step 3: Create Service Account + JSON Key**
 
@@ -258,18 +285,34 @@ For desktop apps that access **your** Google account. Opens a browser once.
 
 #### Step-by-Step Setup
 
-**Step 1–2:** Create a Cloud project and enable the APIs you need.
+**Step 1: Create a Google Cloud Project**
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Project dropdown → **New Project** → create and select it
+
+**Step 2: Enable APIs**
+
+Enable the APIs you need in
+[APIs & Services → Library](https://console.cloud.google.com/apis/library):
+
+| API | Enable |
+| --- | ------ |
+| Google Drive | [Enable Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com) |
+| Google Sheets | [Enable Sheets API](https://console.cloud.google.com/apis/library/sheets.googleapis.com) |
+| Google Calendar | [Enable Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com) |
+| Google Docs | [Enable Docs API](https://console.cloud.google.com/apis/library/docs.googleapis.com) |
+| Google Slides | [Enable Slides API](https://console.cloud.google.com/apis/library/slides.googleapis.com) |
 
 **Step 3: OAuth Consent Screen**
 
-1. **APIs & Services → OAuth consent screen**
+1. **APIs & Services → [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent)**
 2. Choose **External** (or Internal for Workspace)
 3. Fill app name, support email, developer contact
 4. Add yourself as a **Test user** while the app is in testing
 
 **Step 4: Create OAuth Client ID**
 
-1. **Credentials → Create Credentials → OAuth client ID**
+1. **[Credentials](https://console.cloud.google.com/apis/credentials) → Create Credentials → OAuth client ID**
 2. Application type: **Desktop app**
 3. Download JSON → rename to `client_secrets.json`
 
