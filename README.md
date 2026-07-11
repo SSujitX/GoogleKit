@@ -26,7 +26,8 @@ Whether you need a Python Google Drive client, a Google Sheets Python library, a
   - [Method 1: Application Default Credentials](#method-1-application-default-credentials-recommended)
   - [Method 2: Service Account](#method-2-service-account-for-automation)
   - [Method 3: OAuth2 Client](#method-3-oauth2-client-credentials-recommended-for-personal-use)
-  - [Auto-Detection Priority](#auto-detection-priority)
+  - [Method 4: Auto-detect](#method-4-auto-detect-auto)
+  - [Environment Variable](#environment-variable)
 - [API Overview](#api-overview)
 - [Usage Examples](#usage-examples)
 - [OAuth Scopes](#oauth-scopes)
@@ -45,7 +46,7 @@ Whether you need a Python Google Drive client, a Google Sheets Python library, a
 - **Google Docs API v1** — create documents, insert text, tables, batch updates, UTF-16-safe indexes
 - **Google Slides API v1** — create presentations, pages, shapes, images, tables, template text replace
 - **Google OAuth 2.0 & service accounts** — desktop OAuth, ADC (`gcloud auth application-default login`), JSON keys
-- **Auto credential detection** — `GoogleKit.auto()` finds ADC or local `client_secrets.json` / `service_account.json`
+- **Four auth factories** — `from_adc()`, `from_service_account()`, `from_oauth()`, and dedicated `auto()` discovery
 - **Least-privilege OAuth scopes** — `readonly`, `readwrite`, `full` presets per Google API
 - **Unified Google Workspace client** — one `GoogleKit` entry point or per-service clients (`DriveClient`, `SheetsClient`, …)
 - **Production-ready transport** — retries, rate-limit handling, lazy pagination, typed exceptions
@@ -111,26 +112,92 @@ Google API client libraries are included by default — no extras required.
 
 ## Quick Start
 
+GoogleKit exposes **managers** (full API) and optional **shortcuts** (flat helpers). Both are suggested after `client.drive.` / `client.sheets.` / … with hover docs.
+
 ### Unified client
 
 ```python
 from googlekit import GoogleKit
+from googlekit.auth.scopes import ScopeProfile
 
-# Auto-authenticate with ADC or local credential JSON
-client = GoogleKit.auto(services=["gdrive", "gsheets"])
-
-page = client.drive.files.list(folder_id="root")
-for f in page.items:
-    print(f.name)
-
-client.sheets.values.write(
-    "spreadsheet_id",
-    "Sheet1!A1",
-    [["Name", "Score"], ["Ada", 98]],
+client = GoogleKit.auto(
+    services=["gdrive", "gsheets"],
+    profile=ScopeProfile.FULL,  # list all My Drive (not only drive.file)
 )
+
+# Managers (full control)
+page = client.drive.files.list(folder_id="root")
+client.sheets.values.write("spreadsheet_id", "Sheet1!A1", [["Ada", 98]])
+
+# Optional shortcuts (same behavior, flatter)
+page = client.drive.list_files(folder_id="root")
+client.sheets.write_values("spreadsheet_id", "Sheet1!A1", [["Ada", 98]])
 ```
 
-### Drive-only client
+### Shortcuts at a glance (all services)
+
+| Service | Shortcut examples | Equivalent managers |
+| ------- | ----------------- | ------------------- |
+| Drive | `list_files`, `upload_file`, `share`, … | `files.list`, `files.upload_path`, `permissions.share_user`, … |
+| Sheets | `read_values`, `write_values`, `create_spreadsheet` | `values.read` / `write`, `spreadsheets.create` |
+| Calendar | `list_events`, `create_event`, `delete_event` | `events.list` / `create` / `delete` |
+| Docs | `create_document`, `append_text`, `insert_text` | `documents.create`, `content.append_text` / `insert_text` |
+| Slides | `create_presentation`, `get_presentation`, `add_slide` | `presentations.create` / `get`, `pages.add` |
+
+### Drive shortcuts (PyDrive4-style)
+
+```python
+from googlekit.gdrive import DriveClient
+from googlekit.auth.scopes import ScopeProfile
+
+drive = DriveClient.from_oauth(
+    "client_secrets.json",
+    profile=ScopeProfile.FULL,
+)
+
+# Shortcut                          # Manager equivalent
+page = drive.list_files()           # drive.files.list(folder_id="root")
+folders = drive.list_folders()      # drive.files.list(..., query=folder mime)
+hits = drive.search_files("report") # drive.files.search("name contains 'report'")
+folder = drive.create_folder("Reports")  # drive.folders.create(...)
+result = drive.upload_file("report.pdf", folder_id=folder.id)
+#                                     drive.files.upload_path(..., parents=[...])
+drive.download_file(result.file.id, "report.pdf")
+drive.share(result.file.id, email="you@example.com", role="reader")
+# public link (explicit): drive.get_share_link(file_id, public=True)
+```
+
+### Other services — shortcut vs manager
+
+```python
+from datetime import UTC, datetime, timedelta
+from googlekit import GoogleKit
+
+client = GoogleKit.auto(services=["gsheets", "gcalendar", "gdocs", "gslides"])
+
+# Sheets
+client.sheets.write_values("sid", "Sheet1!A1", [["A", 1]])
+client.sheets.values.write("sid", "Sheet1!A1", [["A", 1]])
+
+# Calendar
+start, end = datetime.now(UTC), datetime.now(UTC) + timedelta(hours=1)
+client.calendar.create_event("primary", summary="Standup", start=start, end=end)
+client.calendar.events.create("primary", summary="Standup", start=start, end=end)
+
+# Docs
+doc = client.docs.create_document("Proposal")
+doc = client.docs.documents.create("Proposal")
+client.docs.append_text(doc.id, "Hello\n")
+client.docs.content.append_text(doc.id, "Hello\n")
+
+# Slides
+deck = client.slides.create_presentation("Pitch")
+deck = client.slides.presentations.create("Pitch")
+client.slides.add_slide(deck.id)
+client.slides.pages.add(deck.id)
+```
+
+### Drive-only client (managers)
 
 ```python
 from googlekit.gdrive import DriveClient
@@ -143,13 +210,14 @@ drive.files.upload_path("report.pdf")
 
 ## Authentication Methods
 
-GoogleKit supports multiple authentication methods, ordered by recommendation for most workflows:
+GoogleKit supports four authentication methods, ordered by recommendation for most workflows:
 
 | Method | Factory | Best For | Setup Required |
 | ------ | ------- | -------- | -------------- |
-| **1. Application Default Credentials** | `from_adc()` / `auto()` | Local dev, Google Cloud | `gcloud` CLI |
+| **1. Application Default Credentials** | `from_adc()` | Local dev, Google Cloud | `gcloud` CLI |
 | **2. Service Account** | `from_service_account()` | Servers, automation, bots | JSON key file |
 | **3. OAuth2 Client** | `from_oauth()` | Personal scripts, desktop apps | JSON + browser auth |
+| **4. Auto-detect** | `auto()` | Quick start / scripts that accept any local creds | ADC **or** a JSON file in CWD |
 
 **Security:** never commit `client_secrets.json`, service-account keys, or token files. OAuth tokens default to `./token.json` in the current working directory when `token_path` is omitted (keep it gitignored).
 
@@ -194,8 +262,6 @@ gcloud auth application-default login
 from googlekit import GoogleKit
 
 client = GoogleKit.from_adc(services=["gdrive"])
-# or
-client = GoogleKit.auto(services=["gdrive"])
 ```
 
 #### How it Works
@@ -250,14 +316,10 @@ If key creation is blocked (`iam.disableServiceAccountKeyCreation`):
 ```python
 from googlekit import GoogleKit
 
-# Explicit
 client = GoogleKit.from_service_account(
     "service_account.json",
     services=["gdrive", "gsheets"],
 )
-
-# Auto-detect (if service_account.json is in the working directory)
-client = GoogleKit.auto(services=["gdrive"])
 ```
 
 | Aspect | OAuth2 | Service Account |
@@ -324,7 +386,7 @@ from googlekit import GoogleKit
 
 client = GoogleKit.from_oauth(
     "client_secrets.json",
-    token_path="token.json",  # optional; defaults to OS config dir
+    token_path="token.json",  # optional; defaults to ./token.json
     services=["gdrive", "gsheets", "gcalendar"],
 )
 ```
@@ -341,6 +403,35 @@ drive = DriveClient.from_oauth("client_secrets.json")
 
 ---
 
+### Method 4: Auto-detect (`auto()`)
+
+Convenience factory that picks credentials for you — use when you want one call that works with ADC **or** a local JSON file.
+
+```python
+from googlekit import GoogleKit
+
+client = GoogleKit.auto(services=["gdrive"])
+# Optional: token_path=... when discovery lands on OAuth
+```
+
+Discovery order:
+
+1. **Application Default Credentials** (`gcloud` login or `GOOGLE_APPLICATION_CREDENTIALS`)
+2. **Service account files** in the working directory:
+   - `service_account.json`
+   - `service_account_key.json`
+   - `sa_credentials.json`
+3. **OAuth client files** in the working directory:
+   - `client_secrets.json`
+   - `client_secret.json`
+   - `credentials.json`
+   - `oauth_credentials.json`
+4. Raise `AuthenticationError` with setup guidance
+
+Prefer explicit `from_adc()` / `from_service_account()` / `from_oauth()` in production when you know which credential type you need.
+
+---
+
 ### Environment Variable
 
 ```bash
@@ -353,26 +444,8 @@ $env:GOOGLE_APPLICATION_CREDENTIALS="C:\path\to\credentials.json"
 
 ```python
 client = GoogleKit.from_adc(services=["gdrive"])
-# or
-client = GoogleKit.auto(services=["gdrive"])
+# or Method 4: GoogleKit.auto(services=["gdrive"])
 ```
-
----
-
-### Auto-Detection Priority
-
-When you call `GoogleKit.auto()`, credential discovery tries:
-
-1. **Application Default Credentials** (`gcloud` login or `GOOGLE_APPLICATION_CREDENTIALS`)
-2. **Service account files** in the working directory:
-   - `service_account.json`
-   - `service_account_key.json`
-   - `sa_credentials.json`
-3. **OAuth client files** in the working directory:
-   - `client_secrets.json`
-   - `client_secret.json`
-   - `credentials.json`
-   - `oauth_credentials.json`
 
 ---
 
@@ -412,6 +485,8 @@ Pass `config=` into `GoogleKit.from_oauth` / `.auto` or any service `from_*` fac
 | `permissions` | `share_user`, `share_group`, `share_domain`, `share_anyone` (needs `public=True`), `create_shareable_link`, `list`, `remove` |
 | `changes` | `get_start_page_token`, `list`, `iterate` |
 
+**Shortcuts:** `list_files`, `list_folders`, `search_files`, `search_folders`, `create_folder`, `upload_file`, `download_file`, `upload_folder`, `delete_file` / `delete_folder`, `share`, `unshare`, `list_permissions`, `get_share_link`
+
 ### Sheets (`client.sheets`)
 
 | Manager | Highlights |
@@ -419,6 +494,8 @@ Pass `config=` into `GoogleKit.from_oauth` / `.auto` or any service `from_*` fac
 | `values` | `read`, `read_multiple`, `write`, `write_multiple`, `append`, `clear` |
 | `spreadsheets` / `worksheets` | create, get, add/delete/duplicate sheets |
 | `formatting` | text, number formats, borders, merge |
+
+**Shortcuts:** `create_spreadsheet`, `get_spreadsheet`, `read_values`, `write_values`, `append_values`
 
 ### Calendar (`client.calendar`)
 
@@ -428,12 +505,17 @@ Pass `config=` into `GoogleKit.from_oauth` / `.auto` or any service `from_*` fac
 | `calendars` | calendar list / CRUD |
 | `freebusy` | availability queries |
 
+**Shortcuts:** `list_events`, `create_event`, `get_event`, `delete_event`
+
 ### Docs / Slides
 
 | Client | Highlights |
 | ------ | ---------- |
 | `client.docs` | `documents.create` / `get`, content helpers, tables, `export` / `share` via Drive |
 | `client.slides` | `presentations.create` / `get`, pages, elements, tables, images, text replace |
+
+**Docs shortcuts:** `create_document`, `get_document`, `append_text`, `insert_text`  
+**Slides shortcuts:** `create_presentation`, `get_presentation`, `add_slide`
 
 ---
 
@@ -443,26 +525,37 @@ Pass `config=` into `GoogleKit.from_oauth` / `.auto` or any service `from_*` fac
 
 ```python
 from googlekit import GoogleKit
+from googlekit.auth.scopes import ScopeProfile
 
-client = GoogleKit.auto(services=["gdrive"])
+client = GoogleKit.auto(services=["gdrive"], profile=ScopeProfile.FULL)
 drive = client.drive
 
+# Manager
 page = drive.files.list(folder_id="root")
+# Shortcut (equivalent)
+page = drive.list_files(folder_id="root")
+
 for f in page.items:
     print(f"{f.name} ({f.id})")
 
 uploaded = drive.files.upload_path("document.pdf", parents=["folder_id"])
-drive.files.download_path(uploaded.id, "local-copy.pdf")
+# or: drive.upload_file("document.pdf", folder_id="folder_id")
+drive.files.download_path(uploaded.file.id, "local-copy.pdf")
+# or: drive.download_file(uploaded.file.id, "local-copy.pdf")
 ```
 
 ### Drive — folders and sharing
 
 ```python
 folder = drive.folders.create_path("Projects/2026")
+# or: drive.create_folder("Projects") then nest as needed
 drive.folders.upload_directory("./my_project", parent_id=folder.id)
+# or: drive.upload_folder("./my_project", parent_id=folder.id)
 
 drive.permissions.share_user(folder.id, "colleague@example.com", role="writer")
+# or: drive.share(folder.id, email="colleague@example.com", role="writer")
 link = drive.permissions.create_shareable_link(folder.id, public=True)
+# or: drive.get_share_link(folder.id, public=True)
 print(link)
 ```
 
@@ -471,12 +564,21 @@ print(link)
 ```python
 client = GoogleKit.auto(services=["gsheets"])
 
+# Manager
 client.sheets.values.write(
     "spreadsheet_id",
     "Sheet1!A1:B2",
     [["Name", "Score"], ["Ada", 98]],
 )
 rows = client.sheets.values.read("spreadsheet_id", "Sheet1!A1:B10")
+
+# Shortcut (equivalent)
+client.sheets.write_values(
+    "spreadsheet_id",
+    "Sheet1!A1:B2",
+    [["Name", "Score"], ["Ada", 98]],
+)
+rows = client.sheets.read_values("spreadsheet_id", "Sheet1!A1:B10")
 print(rows)
 ```
 
@@ -489,7 +591,16 @@ client = GoogleKit.auto(services=["gcalendar"])
 start = datetime.now(UTC)
 end = start + timedelta(hours=1)
 
+# Manager
 event = client.calendar.events.create(
+    "primary",
+    summary="Standup",
+    start=start,
+    end=end,
+    conference=True,
+)
+# Shortcut (equivalent)
+event = client.calendar.create_event(
     "primary",
     summary="Standup",
     start=start,
@@ -504,10 +615,17 @@ print(event.id)
 ```python
 client = GoogleKit.auto(services=["gdocs", "gslides", "gdrive"])
 
+# Docs — manager / shortcut
 doc = client.docs.documents.create("Proposal")
+doc = client.docs.create_document("Proposal")
 client.docs.content.insert_text(doc.id, "Hello from GoogleKit\n", index=1)
+client.docs.insert_text(doc.id, "Hello from GoogleKit\n", index=1)
 
+# Slides — manager / shortcut
 deck = client.slides.presentations.create("Pitch Deck")
+deck = client.slides.create_presentation("Pitch Deck")
+client.slides.pages.add(deck.id)
+client.slides.add_slide(deck.id)
 print(deck.id)
 ```
 
