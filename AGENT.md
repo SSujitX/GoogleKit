@@ -142,7 +142,10 @@ Installed apps **cannot** incremental-authorize.
 
 - `FileTokenStore`: atomic write (`mkstemp` → write → `replace`)
 - Mode `0600` via `fchmod` when available (POSIX); **skip `fchmod` on Windows** (`getattr(os, "fchmod", None)`); still try `chmod` after replace
-- Default path: Windows `%APPDATA%/googlekit/token.json`; Unix XDG/`~/.config/googlekit/token.json`
+- Default path: `./token.json` in the process current working directory
+- Optional: `user_config_token_path()` → Windows `%APPDATA%/googlekit/token.json`; Unix XDG/`~/.config/googlekit/token.json`
+- `GoogleKit.auto(..., token_path=...)` is supported; omit to use `./token.json` for OAuth
+- Keep `token.json` gitignored (already in `.gitignore`)
 - `InMemoryTokenStore` for tests
 
 ### Cloud Console (docs must stay current)
@@ -207,7 +210,7 @@ Never log tokens or Authorization headers.
 
 ## 7. Unified client wiring (`client.py`)
 
-- Lazy properties: `.drive`, `.sheets`, `.calendar`, `.docs`, `.slides`
+- Lazy properties: `.drive`, `.sheets`, `.calendar`, `.docs`, `.slides` (typed as `DriveAPI` / `SheetsAPI` / … so IDE autocomplete shows managers, not `from_oauth`)
 - Shared `CredentialProvider` + `ClientConfig` across services
 - `share_provider(client)` for Docs/Slides Drive bridge or custom multi-client setups
 - `_primary_extra` picks first service for `require_extra` messaging
