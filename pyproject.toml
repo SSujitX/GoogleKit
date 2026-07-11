@@ -49,7 +49,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/SSujitX/GoogleKit"
-Documentation = "https://github.com/SSujitX/GoogleKit#readme"
+Documentation = "https://ssujitx.github.io/GoogleKit/"
 Repository = "https://github.com/SSujitX/GoogleKit"
 Issues = "https://github.com/SSujitX/GoogleKit/issues"
 Changelog = "https://github.com/SSujitX/GoogleKit/blob/main/RELEASE.md"
@@ -62,7 +62,7 @@ dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "mkdocs>=1.6.1",
-    "mkdocs-material>=9.7.6",
+    "mkdocs-material[imaging]>=9.7.6",
 ]
 
 [build-system]
