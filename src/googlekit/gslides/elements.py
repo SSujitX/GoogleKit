@@ -4,15 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from googlekit.core.exceptions import ValidationError
+from googlekit.core.exceptions import NotFoundError, ValidationError
 from googlekit.core.transport import Transport
 from googlekit.core.types import PresentationId
 from googlekit.core.validation import require_non_empty
 from googlekit.gslides.models import (
     AffineTransform,
     BatchUpdateResult,
+    PageElement,
+    Presentation,
     ShapeType,
     Size,
+    pt_to_emu,
 )
 from googlekit.gslides.presentations import PresentationsManager
 
@@ -23,6 +26,14 @@ class ElementsManager:
     def __init__(self, transport: Transport) -> None:
         self._transport = transport
         self._presentations = PresentationsManager(transport)
+
+    def _find_element(self, presentation_id: PresentationId, object_id: str) -> PageElement:
+        presentation: Presentation = self._presentations.get(presentation_id)
+        for slide in presentation.slides:
+            for element in slide.elements:
+                if element.object_id == object_id:
+                    return element
+        raise NotFoundError(f"Page element {object_id!r} not found in presentation")
 
     def create_shape(
         self,
@@ -91,9 +102,22 @@ class ElementsManager:
         y_pt: float,
         apply_mode: str = "ABSOLUTE",
     ) -> BatchUpdateResult:
-        """Move an element by setting its translation (points → EMU)."""
+        """Move an element by setting its translation (points → EMU).
+
+        ABSOLUTE updates replace the full transform; current scale/shear are
+        preserved so sized elements are not reset to scale 1.
+        """
         require_non_empty(object_id, "object_id")
-        tf = AffineTransform.translate_pt(x_pt, y_pt)
+        current = self._find_element(presentation_id, object_id).transform or AffineTransform()
+        tf = AffineTransform(
+            scale_x=current.scale_x,
+            scale_y=current.scale_y,
+            shear_x=current.shear_x,
+            shear_y=current.shear_y,
+            translate_x_emu=float(pt_to_emu(x_pt)),
+            translate_y_emu=float(pt_to_emu(y_pt)),
+            unit=current.unit,
+        )
         return self._presentations.batch_update(
             presentation_id,
             [
@@ -118,26 +142,31 @@ class ElementsManager:
         y_pt: float | None = None,
         apply_mode: str = "ABSOLUTE",
     ) -> BatchUpdateResult:
-        """Resize an element via scale factors on a unit size transform.
+        """Resize an element relative to its current ``size`` property.
 
-        Slides sizes are applied through element properties at create time;
-        afterward, scaling is done with ``updatePageElementTransform``. This
-        helper sets scaleX/scaleY relative to a 1x1 EMU base when using
-        ABSOLUTE with explicit size magnitude, which matches common patterns
-        of replacing the transform with translate + scale derived from points.
+        Create paths set full EMU size with ``scaleX/Y = 1``. ABSOLUTE resize
+        therefore sets ``scale = target_emu / current_size_emu`` (not raw EMU
+        magnitudes, which would inflate by ~12700×).
         """
         require_non_empty(object_id, "object_id")
         if width_pt <= 0 or height_pt <= 0:
             raise ValidationError("width_pt and height_pt must be positive")
-        # Represent size as scale on a 1 PT identity — use EMU magnitudes as
-        # scale relative to 1 EMU so the visual size equals width/height.
-        from googlekit.gslides.models import pt_to_emu
-
+        element = self._find_element(presentation_id, object_id)
+        if element.size is None or element.size.width_emu <= 0 or element.size.height_emu <= 0:
+            raise ValidationError(
+                f"Element {object_id!r} has no usable size; cannot compute resize scale"
+            )
+        current = element.transform or AffineTransform()
+        tx = float(pt_to_emu(x_pt)) if x_pt is not None else current.translate_x_emu
+        ty = float(pt_to_emu(y_pt)) if y_pt is not None else current.translate_y_emu
         tf = AffineTransform(
-            scale_x=float(pt_to_emu(width_pt)),
-            scale_y=float(pt_to_emu(height_pt)),
-            translate_x_emu=float(pt_to_emu(x_pt or 0.0)),
-            translate_y_emu=float(pt_to_emu(y_pt or 0.0)),
+            scale_x=float(pt_to_emu(width_pt)) / element.size.width_emu,
+            scale_y=float(pt_to_emu(height_pt)) / element.size.height_emu,
+            shear_x=current.shear_x,
+            shear_y=current.shear_y,
+            translate_x_emu=tx,
+            translate_y_emu=ty,
+            unit=current.unit,
         )
         return self._presentations.batch_update(
             presentation_id,
