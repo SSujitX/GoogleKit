@@ -3,7 +3,7 @@
 Create a Doc containing tokens like {{name}} and {{date}}, then run this script.
 
 Requires:
-    uv add "googlekit[gdocs]"
+    uv add googlekit
 """
 
 from __future__ import annotations
