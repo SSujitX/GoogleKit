@@ -6,7 +6,12 @@ from unittest.mock import patch
 
 import pytest
 
-from googlekit.core.exceptions import MissingExtraError, RateLimitError, ValidationError
+from googlekit.core.exceptions import (
+    MissingExtraError,
+    RateLimitError,
+    RetryExhaustedError,
+    ValidationError,
+)
 from googlekit.core.optional import installed_extras, require_extra
 from googlekit.core.pagination import Page, PageIterator
 from googlekit.core.retries import RetryPolicy, call_with_retries, should_retry_status
@@ -43,12 +48,13 @@ def test_call_with_retries_exhausted() -> None:
     def always_fail() -> None:
         raise RateLimitError("nope")
 
-    with pytest.raises(RateLimitError):
+    with pytest.raises(RetryExhaustedError) as exc_info:
         call_with_retries(
             always_fail,
             policy=RetryPolicy(max_attempts=2, initial_delay=0.01, jitter=0),
             sleep=lambda _d: None,
         )
+    assert isinstance(exc_info.value.last_error, RateLimitError)
 
 
 def test_page_iterator_lazy() -> None:
