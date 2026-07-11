@@ -148,7 +148,11 @@ for el in document.structural_elements:
 # kinds: paragraph | table | tableOfContents | sectionBreak | unknown
 ```
 
-Named ranges from the API are exposed as `document.named_ranges: dict[str, list[TextRange]]`.
+Named ranges from the API are exposed as
+`document.named_ranges: dict[str, list[TextRange]]`. With tab content enabled,
+GoogleKit reads ranges from every top-level and nested `documentTab`; each
+`TextRange.tab_id` identifies its source tab. Individual tab ranges are also
+available through `document.tabs[n].named_ranges`.
 
 ### `inspect_structure(document_id) → list[StructuralElement]`
 
@@ -493,7 +497,8 @@ Import from `googlekit.gdocs`:
 
 | Type | Purpose |
 | ---- | ------- |
-| `Document` | `id`, `title`, `revision_id`, `body_end_index`, `structural_elements`, `named_ranges`, `plain_text` |
+| `Document` | `id`, `title`, `revision_id`, `body_end_index`, `structural_elements`, `named_ranges`, `tabs`, `plain_text` |
+| `DocumentTab` | `tab_id`, `title`, `body_end_index`, `structural_elements`, `named_ranges` |
 | `StructuralElement` | `kind`, indexes, optional `text`, `raw` |
 | `TextRange` | UTF-16 range + optional `segment_id` / `tab_id` |
 | `TextStyle` / `ParagraphStyle` | Field subsets for style updates |
