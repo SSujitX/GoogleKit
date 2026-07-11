@@ -48,6 +48,29 @@ Default scopes use `ScopeProfile.READWRITE` → `https://www.googleapis.com/auth
 | `docs.tables` | Insert tables, rows/columns, write cells, format cells |
 | `docs.images` | Insert, resize, replace inline images from public URLs |
 
+### Optional shortcuts vs managers
+
+Both appear after `docs.` (typed as `DocsAPI`).
+
+| Shortcut | Delegates to |
+| -------- | ------------ |
+| `create_document(title)` | `documents.create(title)` |
+| `get_document(id, ...)` | `documents.get(id, ...)` |
+| `append_text(id, text)` | `content.append_text(id, text)` |
+| `insert_text(id, text, index, ...)` | `content.insert_text(...)` |
+
+```python
+# Manager
+doc = docs.documents.create("Proposal")
+docs.content.append_text(doc.id, "Hello\n")
+docs.content.insert_text(doc.id, "Title\n", index=1)
+
+# Shortcut (equivalent)
+doc = docs.create_document("Proposal")
+docs.append_text(doc.id, "Hello\n")
+docs.insert_text(doc.id, "Title\n", index=1)
+```
+
 ---
 
 ## Critical: UTF-16 indexes
