@@ -35,12 +35,12 @@ HTTP/API failures from `googleapiclient` are mapped by `map_http_error`:
 `APIError` preserves `status_code`, `reason`, and `request_id` when available.
 Authorization headers and tokens are never included in messages.
 
-## Missing extras
+## Missing client libraries
 
 ```python
 from googlekit.core.exceptions import MissingExtraError
 
-# Message includes: uv add "googlekit[<extra>]"
+# Message includes: uv add googlekit
 ```
 
 ## Validation
