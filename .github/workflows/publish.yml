@@ -1,0 +1,45 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build and publish to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/googlekit
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.11
+
+      - name: Build
+        run: uv build
+
+      - name: Smoke test wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          WHEEL=$(ls dist/googlekit-*.whl | head -n 1)
+          uv run --isolated --no-project --with "$WHEEL" python -c "import googlekit; assert googlekit.__version__"
+
+      - name: Publish
+        run: uv publish
