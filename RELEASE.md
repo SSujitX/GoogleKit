@@ -1,43 +1,28 @@
-## [0.0.2] - 2026-07-12
-
-Documentation and maintainer tooling release. No breaking API changes to the library surface.
+## [0.0.3] - 2026-07-12
 
 ### Changed
 
-#### Authentication docs (README + docs site)
+#### OAuth token storage
 
-- All three auth methods (ADC, service account, OAuth) now share the same **Step 1–2** flow: create a Cloud project, then **Step 2: Enable APIs**
-- Step 2 links to [APIs & Services → Library](https://console.cloud.google.com/apis/library) plus direct enable links for Drive, Sheets, Calendar, Docs, and Slides
-- OAuth Method 3 updated for Google’s **Google Auth Platform** UI:
-  - [Branding](https://console.cloud.google.com/auth/branding)
-  - [Audience](https://console.cloud.google.com/auth/audience) (test users)
-  - [Data Access](https://console.cloud.google.com/auth/scopes)
-  - [Clients](https://console.cloud.google.com/auth/clients) → **+ Create client** → **Desktop app**
-- Older **APIs & Services → Credentials / OAuth consent screen** path documented as a fallback
-- `docs/authentication.md` official-links and Cloud Console setup summary aligned with the same Auth Platform flow
+- Default OAuth token path is now `./token.json` in the **current working directory** (project folder), not `%APPDATA%\googlekit\`
+- Optional `user_config_token_path()` keeps the old OS user-config location if you want it
+- `GoogleKit.auto(..., token_path=...)` is supported; omit `token_path` to use `./token.json`
+- `token.json` remains gitignored — do not commit it
 
-#### Versioning (single source of truth)
+#### IDE autocomplete (service managers)
 
-- Package version is read only from `pyproject.toml` metadata via `importlib.metadata`
-- `googlekit.__version__`, CLI `--version`, and default `USER_AGENT` (`googlekit/<version>`) all use `package_version()` — **no hardcoded release versions in source**
-- Fallback when the package is not installed: `"dev"`
-- Release habit: bump `pyproject.toml` → update this file → `uv sync` → tag `vX.Y.Z`
+- `client.drive` / `client.sheets` / `client.calendar` / `client.docs` / `client.slides` are typed as service protocols (`DriveAPI`, `SheetsAPI`, …)
+- After `drive.`, editors suggest **managers** (`files`, `folders`, `permissions`, `changes`) instead of auth factories (`from_oauth`, `from_provider`) or internals (`provider`, `transport`)
+- Same for Sheets (`spreadsheets`, `values`, `worksheets`, `formatting`), Calendar, Docs, and Slides
+- Concrete clients still have factories/provider at runtime; construct `DriveClient(...)` when you need `.provider` / `.transport` in typed code
 
-#### Docs site & maintainer docs
+#### ClientConfig / RetryPolicy DX
 
-- Removed public MkDocs page `/publishing/` (`docs/publishing.md` deleted; dropped from `mkdocs.yml` nav and home map)
-- Publishing / Trusted Publishing / tag checklist moved into [`CONTRIBUTING.md`](CONTRIBUTING.md) (maintainer section)
-- [`AGENT.md`](AGENT.md) rewritten as the current architecture / LLM reference (auth rules, service quirks, CI/publish, agent do-nots) — replaces the old greenfield “build GoogleKit” prompt
+- `ClientConfig` and `RetryPolicy` are exported from the top-level `googlekit` package (`from googlekit import ClientConfig, RetryPolicy`)
+- `ClientConfig(retry=5)` shorthand sets `RetryPolicy(max_attempts=5)`
+- Rich class and field docstrings for IDE hover (timeout, retry fields, what gets retried, Calendar timezone, Shared Drives, etc.)
 
-#### CI / release workflow
+#### Public API hover docs
 
-- Publish workflow `run-name` is now `PyPI publish ${{ github.ref_name }}` (e.g. `PyPI publish v0.0.2`) instead of the latest commit subject
-
-### Added
-
-- `package_version()` in `src/googlekit/core/constants.py` as the shared version helper
-- Maintainer publishing section in `CONTRIBUTING.md` (tag steps, pending Trusted Publisher fields, local `uv build`)
-
-### Removed
-
-- `docs/publishing.md` and the **Publishing** entry from the public documentation site
+- Expanded docstrings on `GoogleKit` factories/properties, `DriveClient` managers, `ScopeProfile` / `ScopeSet`, `Page` / `PageIterator`, and `FilesManager.list` (including empty-list / `drive.file` tip)
+- Service client class docs call out managers and key pitfalls (Calendar timezone, Docs UTF-16, Drive scopes)
