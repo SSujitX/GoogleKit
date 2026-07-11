@@ -11,11 +11,11 @@ QUOTA_PROJECT_ID = None  # optional billing/quota project
 
 
 def main() -> None:
-    kit = GoogleKit.from_adc(
+    client = GoogleKit.from_adc(
         quota_project_id=QUOTA_PROJECT_ID,
         services=["gcalendar"],
     )
-    print("Authenticated scopes:", sorted(kit.scopes.values))
+    print("Authenticated scopes:", sorted(client.scopes.values))
     print("ADC client ready")
 
 
