@@ -32,6 +32,32 @@ def _escape_drive_query_value(value: str) -> str:
     return value.replace("\\", "\\\\").replace("'", "\\'")
 
 
+def _export_extension(export_format: str) -> str | None:
+    value = export_format.strip().lower().lstrip(".")
+    if "/" not in value:
+        return "md" if value == "markdown" else value or None
+    return {
+        "application/pdf": "pdf",
+        "application/zip": "zip",
+        "application/rtf": "rtf",
+        "application/epub+zip": "epub",
+        "application/vnd.oasis.opendocument.text": "odt",
+        "application/vnd.oasis.opendocument.spreadsheet": "ods",
+        "application/vnd.oasis.opendocument.presentation": "odp",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+        "application/vnd.google-apps.script+json": "json",
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/svg+xml": "svg",
+        "text/csv": "csv",
+        "text/markdown": "md",
+        "text/plain": "txt",
+        "text/tab-separated-values": "tsv",
+    }.get(value)
+
+
 class DriveShortcuts:
     """Optional flat helpers mixed into :class:`~googlekit.gdrive.client.DriveClient`."""
 
@@ -205,7 +231,12 @@ class DriveShortcuts:
         """
         if destination is None:
             meta = self.files.get(file_id)
-            destination = Path.cwd() / meta.name
+            filename = meta.name
+            if export_format and meta.is_google_native:
+                extension = _export_extension(export_format)
+                if extension and not filename.lower().endswith(f".{extension}"):
+                    filename = f"{filename}.{extension}"
+            destination = Path.cwd() / filename
         return self.files.download_path(
             file_id,
             destination,
