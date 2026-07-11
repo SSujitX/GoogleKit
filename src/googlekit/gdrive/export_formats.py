@@ -1,11 +1,15 @@
-"""Export MIME maps for Google-native Drive files."""
+"""Export MIME maps for Google-native Drive files.
+
+Source of truth (verified 2026-07):
+https://developers.google.com/workspace/drive/api/guides/ref-export-formats
+"""
 
 from __future__ import annotations
 
 from googlekit.core.exceptions import ValidationError
 from googlekit.core.validation import require_non_empty
 
-# Common short-name → MIME mappings for Google-native export.
+# Document type → short-name → MIME (official Drive exportFormats table).
 EXPORT_MIME_MAP: dict[str, dict[str, str]] = {
     "application/vnd.google-apps.document": {
         "pdf": "application/pdf",
@@ -13,8 +17,12 @@ EXPORT_MIME_MAP: dict[str, dict[str, str]] = {
         "odt": "application/vnd.oasis.opendocument.text",
         "rtf": "application/rtf",
         "txt": "text/plain",
-        "html": "text/html",
+        # Official table: Web Page (HTML) exports as a zip archive.
+        "html": "application/zip",
+        "zip": "application/zip",
         "epub": "application/epub+zip",
+        "md": "text/markdown",
+        "markdown": "text/markdown",
     },
     "application/vnd.google-apps.spreadsheet": {
         "pdf": "application/pdf",
@@ -22,7 +30,9 @@ EXPORT_MIME_MAP: dict[str, dict[str, str]] = {
         "ods": "application/vnd.oasis.opendocument.spreadsheet",
         "csv": "text/csv",
         "tsv": "text/tab-separated-values",
-        "html": "text/html",
+        # Official table: Web Page (HTML) exports as a zip archive.
+        "html": "application/zip",
+        "zip": "application/zip",
     },
     "application/vnd.google-apps.presentation": {
         "pdf": "application/pdf",
@@ -31,12 +41,21 @@ EXPORT_MIME_MAP: dict[str, dict[str, str]] = {
         "txt": "text/plain",
         "png": "image/png",
         "jpeg": "image/jpeg",
+        "jpg": "image/jpeg",
+        "svg": "image/svg+xml",
     },
     "application/vnd.google-apps.drawing": {
         "pdf": "application/pdf",
         "png": "image/png",
         "jpeg": "image/jpeg",
+        "jpg": "image/jpeg",
         "svg": "image/svg+xml",
+    },
+    "application/vnd.google-apps.script": {
+        "json": "application/vnd.google-apps.script+json",
+    },
+    "application/vnd.google-apps.vid": {
+        "mp4": "video/mp4",
     },
 }
 
