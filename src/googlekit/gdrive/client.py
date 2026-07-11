@@ -16,9 +16,10 @@ from googlekit.gdrive.changes import ChangesManager
 from googlekit.gdrive.files import FilesManager
 from googlekit.gdrive.folders import FoldersManager
 from googlekit.gdrive.permissions import PermissionsManager
+from googlekit.gdrive.shortcuts import DriveShortcuts
 
 
-class DriveClient:
+class DriveClient(DriveShortcuts):
     """Typed client for Google Drive API v3.
 
     Managers (what you use after construction):
@@ -27,6 +28,11 @@ class DriveClient:
     - ``folders`` — create paths, directory sync
     - ``permissions`` — sharing and links
     - ``changes`` — incremental change feed
+
+    Optional flat shortcuts (same as managers, simpler scripts)::
+
+        drive.list_files() / search_files / create_folder / upload_file /
+        download_file / share / …
 
     Example::
 
@@ -37,7 +43,8 @@ class DriveClient:
             "client_secrets.json",
             profile=ScopeProfile.FULL,  # list all My Drive files
         )
-        page = drive.files.list(folder_id="root")
+        page = drive.list_files(folder_id="root")
+        # or: page = drive.files.list(folder_id="root")
     """
 
     def __init__(
