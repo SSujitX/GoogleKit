@@ -208,6 +208,6 @@ def _primary_extra(services: list[str] | None) -> str:
     return mapping.get(services[0], "gdrive")
 
 
-def share_provider(kit: GoogleKit) -> CredentialProvider:
+def share_provider(client: GoogleKit) -> CredentialProvider:
     """Return the shared credential provider for cross-service reuse."""
-    return kit.provider
+    return client.provider
