@@ -18,7 +18,12 @@ from googlekit.auth.scopes import (
     preset_for,
 )
 from googlekit.auth.service_account import ServiceAccountCredentialProvider
-from googlekit.auth.token_store import FileTokenStore, InMemoryTokenStore, default_token_path
+from googlekit.auth.token_store import (
+    FileTokenStore,
+    InMemoryTokenStore,
+    default_token_path,
+    user_config_token_path,
+)
 
 __all__ = [
     "CALENDAR_PRESETS",
@@ -39,4 +44,5 @@ __all__ = [
     "build_provider",
     "default_token_path",
     "preset_for",
+    "user_config_token_path",
 ]
