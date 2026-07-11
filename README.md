@@ -15,11 +15,13 @@
 
 # GoogleKit
 
-**GoogleKit is an unofficial Python SDK that wraps `google-api-python-client` for Google Drive, Sheets, Calendar, Docs, and Slides.**
+**GoogleKit is an unofficial Python SDK for the Google Drive API, Google Sheets API, Google Calendar API, Google Docs API, and Google Slides API.**
 
 > GoogleKit is **not** affiliated with, endorsed by, or sponsored by Google LLC.
 
-A modern, typed library for Google Workspace APIs. Inspired by [PyDrive](https://pypi.python.org/pypi/PyDrive), [PyDrive2](https://github.com/iterative/PyDrive2), and [PyDrive4](https://github.com/SSujitX/pydrive4) — expanded beyond Drive into a consistent multi-service kit with simplified authentication and a clean manager-style API.
+Use GoogleKit to upload and download Google Drive files, read and write Google Sheets spreadsheets, manage Google Calendar events, create Google Docs documents, and build Google Slides presentations — from one Python package. It wraps `google-api-python-client` with OAuth 2.0, service account, and Application Default Credentials (ADC) auth, least-privilege scopes, retries, and a clean typed API for Google Workspace automation, bots, scripts, and backend services.
+
+Whether you need a Python Google Drive client, a Google Sheets Python library, a Google Calendar SDK, a Google Docs API wrapper, or a Google Slides API client, GoogleKit gives you one consistent Google Workspace Python SDK instead of wiring each Google API by hand.
 
 ## Table of Contents
 
@@ -44,29 +46,29 @@ A modern, typed library for Google Workspace APIs. Inspired by [PyDrive](https:/
 
 ## Features
 
-- **Multiple Auth Methods** — ADC, OAuth2 desktop, service account, plus `GoogleKit.auto()` detection
-- **Five Workspace Services** — Drive, Sheets, Calendar, Docs, and Slides behind one package
-- **Unified or Per-Service Clients** — `GoogleKit` or `DriveClient` / `SheetsClient` / …
-- **Least-Privilege Scopes** — presets: `metadata`, `readonly`, `readwrite`, `full`
-- **Drive File & Folder Ops** — upload, download, search, nested paths, recursive folder sync
-- **Sharing Helpers** — user, group, domain, and explicit public link sharing
-- **Sheets Values API** — read / write / append / clear with A1 ranges
-- **Calendar Events** — create, list, Meet links, timezone-aware datetimes
-- **Docs & Slides** — create, batch update, export via Drive, UTF-16-safe Docs indexes
-- **Retries & Pagination** — resilient transport with lazy page iterators
-- **Typed Public API** — `py.typed` package, actionable exceptions
+- **Google Drive API v3 (Python)** — upload, download, search, copy, move, trash, export Docs/Sheets/Slides, shared drives
+- **Google Sheets API v4** — read, write, append, and clear cell values with A1 notation; formatting and worksheets
+- **Google Calendar API v3** — create and list events, Google Meet conference links, free/busy, calendars
+- **Google Docs API v1** — create documents, insert text, tables, batch updates, UTF-16-safe indexes
+- **Google Slides API v1** — create presentations, pages, shapes, images, tables, template text replace
+- **Google OAuth 2.0 & service accounts** — desktop OAuth, ADC (`gcloud auth application-default login`), JSON keys
+- **Auto credential detection** — `GoogleKit.auto()` finds ADC or local `client_secrets.json` / `service_account.json`
+- **Least-privilege OAuth scopes** — `readonly`, `readwrite`, `full` presets per Google API
+- **Unified Google Workspace client** — one `GoogleKit` entry point or per-service clients (`DriveClient`, `SheetsClient`, …)
+- **Production-ready transport** — retries, rate-limit handling, lazy pagination, typed exceptions
+- **MIT open source** — install with `pip install googlekit` or `uv add googlekit`
 
 ## Supported Services
 
-| Service | Module | Client |
-| ------- | ------ | ------ |
-| Google Drive | `googlekit.gdrive` | `DriveClient` |
-| Google Sheets | `googlekit.gsheets` | `SheetsClient` |
-| Google Calendar | `googlekit.gcalendar` | `CalendarClient` |
-| Google Docs | `googlekit.gdocs` | `DocsClient` |
-| Google Slides | `googlekit.gslides` | `SlidesClient` |
+| Google API | Python module | Client class | Common tasks |
+| ---------- | ------------- | ------------ | ------------ |
+| Google Drive API | `googlekit.gdrive` | `DriveClient` | File upload/download, folders, sharing, export |
+| Google Sheets API | `googlekit.gsheets` | `SheetsClient` | Spreadsheet values, worksheets, formatting |
+| Google Calendar API | `googlekit.gcalendar` | `CalendarClient` | Events, Meet links, free/busy |
+| Google Docs API | `googlekit.gdocs` | `DocsClient` | Documents, text, tables, export |
+| Google Slides API | `googlekit.gslides` | `SlidesClient` | Presentations, slides, images, templates |
 
-Enable the APIs you need in [Google Cloud Console](https://console.cloud.google.com/apis/library).
+Enable each API in [Google Cloud Console → APIs & Services → Library](https://console.cloud.google.com/apis/library).
 
 ## Installation
 
@@ -91,7 +93,7 @@ Google API client libraries are included by default — no extras required.
 ```python
 from googlekit import GoogleKit
 
-# Auto-authenticate (ADC → local JSON credentials)
+# Auto-authenticate with ADC or local credential JSON
 kit = GoogleKit.auto(services=["gdrive", "gsheets"])
 
 page = kit.drive.files.list(folder_id="root")
@@ -518,15 +520,8 @@ MIT License — see [LICENSE](LICENSE).
 
 ## Disclaimer
 
-This is an independent open-source project. Google and Google Workspace are trademarks of Google LLC.
+This is an independent open-source project. Google, Google Drive, Google Sheets, Google Calendar, Google Docs, Google Slides, and Google Workspace are trademarks of Google LLC.
 GoogleKit is not affiliated with, endorsed by, or sponsored by Google.
-
----
-
-## Acknowledgments
-
-Auth auto-detection patterns inspired by [PyDrive4](https://github.com/SSujitX/pydrive4).
-Earlier Drive wrappers: [PyDrive](https://pypi.python.org/pypi/PyDrive), [PyDrive2](https://github.com/iterative/PyDrive2).
 
 <p align="center">
   <a href="https://www.star-history.com/#SSujitX/GoogleKit&Date">
