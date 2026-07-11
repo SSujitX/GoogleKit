@@ -1,0 +1,117 @@
+"""Retry policy with injectable clock for tests."""
+
+from __future__ import annotations
+
+import logging
+import random
+import time
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import TypeVar
+
+from googlekit.core.constants import DEFAULT_MAX_RETRIES
+from googlekit.core.exceptions import RateLimitError, RetryExhaustedError
+
+logger = logging.getLogger(__name__)
+
+T = TypeVar("T")
+
+SleepFn = Callable[[float], None]
+ClockFn = Callable[[], float]
+
+
+@dataclass(frozen=True, slots=True)
+class RetryPolicy:
+    """Configurable exponential backoff with jitter."""
+
+    max_attempts: int = DEFAULT_MAX_RETRIES
+    initial_delay: float = 0.5
+    max_delay: float = 60.0
+    multiplier: float = 2.0
+    jitter: float = 0.2
+    enabled: bool = True
+
+    def delay_for_attempt(self, attempt: int, *, retry_after: float | None = None) -> float:
+        """Compute sleep seconds for a 0-based attempt index."""
+        if retry_after is not None and retry_after > 0:
+            return min(retry_after, self.max_delay)
+        base = min(self.initial_delay * (self.multiplier**attempt), self.max_delay)
+        if self.jitter <= 0:
+            return base
+        spread = base * self.jitter
+        return max(0.0, base + random.uniform(-spread, spread))
+
+
+def should_retry_status(status: int | None) -> bool:
+    """Return True for transient HTTP statuses."""
+    if status is None:
+        return False
+    return status in {408, 429, 500, 502, 503, 504}
+
+
+def call_with_retries(
+    fn: Callable[[], T],
+    *,
+    policy: RetryPolicy | None = None,
+    sleep: SleepFn = time.sleep,
+    is_retryable: Callable[[BaseException], bool] | None = None,
+) -> T:
+    """Execute ``fn`` with retries on transient failures.
+
+    Args:
+        fn: Zero-arg callable performing the operation.
+        policy: Retry configuration. ``enabled=False`` disables retries.
+        sleep: Injectable sleep (tests pass a no-op).
+        is_retryable: Optional predicate; defaults to RateLimitError / status checks.
+
+    Returns:
+        The result of ``fn``.
+
+    Raises:
+        RetryExhaustedError: When attempts are exhausted.
+    """
+    policy = policy or RetryPolicy()
+    if not policy.enabled or policy.max_attempts <= 1:
+        return fn()
+
+    last_error: BaseException | None = None
+    for attempt in range(policy.max_attempts):
+        try:
+            return fn()
+        except BaseException as exc:
+            last_error = exc
+            retryable = (
+                is_retryable(exc) if is_retryable is not None else _default_is_retryable(exc)
+            )
+            if not retryable or attempt >= policy.max_attempts - 1:
+                raise
+            retry_after = getattr(exc, "retry_after", None)
+            delay = policy.delay_for_attempt(
+                attempt,
+                retry_after=retry_after if isinstance(retry_after, (int, float)) else None,
+            )
+            logger.debug(
+                "Retrying after %.2fs (attempt %s/%s): %s",
+                delay,
+                attempt + 1,
+                policy.max_attempts,
+                type(exc).__name__,
+            )
+            sleep(delay)
+
+    raise RetryExhaustedError(
+        attempts=policy.max_attempts,
+        last_error=last_error,
+    )
+
+
+def _default_is_retryable(exc: BaseException) -> bool:
+    if isinstance(exc, RateLimitError):
+        return True
+    status = getattr(exc, "status_code", None)
+    if isinstance(status, int) and should_retry_status(status):
+        return True
+    # googleapiclient HttpError-like
+    resp = getattr(exc, "resp", None)
+    status2 = getattr(resp, "status", None)
+    return isinstance(status2, int) and should_retry_status(status2)
