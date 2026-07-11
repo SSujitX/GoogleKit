@@ -653,7 +653,9 @@ client = GoogleKit.from_oauth(
 )
 ```
 
-Missing scopes raise `InsufficientScopesError` with a clear reauth hint.
+Docs/Slides cross-service Drive helpers detect missing Drive scopes locally and
+raise `InsufficientScopesError`. Most other calls rely on Google returning HTTP
+403 when the credential lacks a required scope.
 Calendar `readwrite` includes events, calendars, calendarList, and freebusy so the full `CalendarClient` surface works under the default preset.
 
 ---
