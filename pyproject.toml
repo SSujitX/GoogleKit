@@ -1,7 +1,7 @@
 [project]
 name = "googlekit"
 version = "0.1.0"
-description = "Unofficial Python SDK for Google Drive, Sheets, Calendar, Docs, and Slides"
+description = "Unofficial Python SDK for Google Drive API, Google Sheets API, Google Calendar API, Google Docs API, and Google Slides API (Google Workspace)"
 readme = "README.md"
 license = "MIT"
 authors = [
@@ -9,13 +9,24 @@ authors = [
 ]
 keywords = [
     "google",
+    "google-workspace",
     "google-drive",
+    "google-drive-api",
     "google-sheets",
+    "google-sheets-api",
     "google-calendar",
+    "google-calendar-api",
     "google-docs",
+    "google-docs-api",
     "google-slides",
+    "google-slides-api",
+    "google-api-python-client",
+    "oauth2",
+    "service-account",
+    "application-default-credentials",
     "workspace",
-    "oauth",
+    "spreadsheet",
+    "python-sdk",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
