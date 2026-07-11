@@ -46,6 +46,8 @@ client = GoogleKit.from_oauth(
 
 - Tokens refresh automatically when possible
 - Expanding scopes beyond what the cached token was granted requires a new browser consent flow (installed apps do not support incremental authorization)
+- GoogleKit checks `granted_scopes` after granular consent. A full Drive or
+  Calendar grant also satisfies requests for the corresponding narrower scopes.
 - Default token path is under the **current working directory** (`./token.json`) via `FileTokenStore`; pass `token_path=` to override, or use `user_config_token_path()` for `%APPDATA%` / XDG
 - Token files are written atomically with restrictive permissions when the OS supports them
 
