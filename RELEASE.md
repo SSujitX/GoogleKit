@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Google API client libraries are now default dependencies (`uv add googlekit`); service extras removed
+- Unified `GoogleKit` constructors require explicit `services=` or `scopes=` (no all-service default)
+- OAuth cached tokens are accepted only when their granted scopes cover the request (no fake scope expansion)
+- HTTP timeout / authorized httplib2 transport; retry TransportError and 403 rate-limit reasons
+- Drive folder upload/download overwrite safety; Docs `includeTabsContent` + tab parsing
+- Calendar `response_status` applies only to `self=True` attendees with `attendeesOmitted`
 
 ### Added
 
