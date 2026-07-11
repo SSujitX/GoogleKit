@@ -37,17 +37,28 @@ class DocumentsManager:
         data = self._transport.execute(request)
         return Document.from_api(data)
 
-    def get(self, document_id: DocumentId) -> Document:
+    def get(
+        self,
+        document_id: DocumentId,
+        *,
+        include_tabs_content: bool = True,
+    ) -> Document:
         """Fetch a document including body structure.
 
         Args:
             document_id: Document ID.
+            include_tabs_content: When True (default), request ``includeTabsContent``
+                so multi-tab documents return ``tabs`` payloads. Google recommends
+                reading ``document.tabs`` for tabbed docs.
 
         Returns:
             Typed :class:`Document`.
         """
         did = require_non_empty(document_id, "document_id")
-        request = self._service().documents().get(documentId=did)
+        kwargs: dict[str, Any] = {"documentId": did}
+        if include_tabs_content:
+            kwargs["includeTabsContent"] = True
+        request = self._service().documents().get(**kwargs)
         data = self._transport.execute(request)
         return Document.from_api(data)
 
