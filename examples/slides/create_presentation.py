@@ -1,7 +1,7 @@
 """Create a Google Slides presentation with a title slide and text box.
 
 Requires:
-    uv add "googlekit[gslides]"
+    uv add googlekit
 """
 
 from __future__ import annotations
