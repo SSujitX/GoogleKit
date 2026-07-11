@@ -1,4 +1,4 @@
-"""Optional extra loading and MissingExtraError."""
+"""Google client library loading and MissingExtraError."""
 
 from __future__ import annotations
 
@@ -11,14 +11,14 @@ from googlekit.core.optional import import_optional, installed_extras, require_e
 
 
 def test_require_extra_unknown() -> None:
-    with pytest.raises(ValueError, match="Unknown GoogleKit extra"):
+    with pytest.raises(ValueError, match="Unknown GoogleKit service"):
         require_extra("gphotos")
 
 
 def test_missing_extra_error_message() -> None:
     err = MissingExtraError("Google Drive", "gdrive")
-    assert "Google Drive support is not installed" in str(err)
-    assert 'uv add "googlekit[gdrive]"' in str(err)
+    assert "Google Drive support requires Google client libraries" in str(err)
+    assert "uv add googlekit" in str(err)
     assert err.service == "Google Drive"
     assert err.extra == "gdrive"
 
@@ -32,7 +32,7 @@ def test_require_extra_raises_when_import_fails() -> None:
         pytest.raises(MissingExtraError) as exc_info,
     ):
         require_extra("gdrive")
-    assert 'uv add "googlekit[gdrive]"' in str(exc_info.value)
+    assert "uv add googlekit" in str(exc_info.value)
     assert "Google Drive" in str(exc_info.value)
 
 
@@ -55,7 +55,7 @@ def test_require_extra_message_per_service(extra: str, label: str) -> None:
     ):
         require_extra(extra)
     assert label in str(exc_info.value)
-    assert f'uv add "googlekit[{extra}]"' in str(exc_info.value)
+    assert "uv add googlekit" in str(exc_info.value)
 
 
 def test_import_optional_success() -> None:

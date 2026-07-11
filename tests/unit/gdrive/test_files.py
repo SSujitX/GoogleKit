@@ -134,6 +134,19 @@ def test_resolve_export_mime_helpers() -> None:
         resolve_export_mime("application/vnd.google-apps.spreadsheet", "xlsx")
         == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+    # Official Drive export table: Docs/Sheets HTML is application/zip.
+    assert (
+        resolve_export_mime("application/vnd.google-apps.document", "html")
+        == "application/zip"
+    )
+    assert (
+        resolve_export_mime("application/vnd.google-apps.document", "markdown")
+        == "text/markdown"
+    )
+    assert (
+        resolve_export_mime("application/vnd.google-apps.presentation", "svg")
+        == "image/svg+xml"
+    )
     with pytest.raises(ValidationError):
         resolve_export_mime("application/pdf", "docx")
 

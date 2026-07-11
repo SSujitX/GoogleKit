@@ -72,7 +72,7 @@ def test_missing_extra_message() -> None:
     with patch("googlekit.core.optional.import_module", side_effect=ImportError("x")):
         with pytest.raises(MissingExtraError) as exc:
             require_extra("gdrive")
-        assert 'uv add "googlekit[gdrive]"' in str(exc.value)
+        assert "uv add googlekit" in str(exc.value)
 
 
 def test_installed_extras_keys() -> None:

@@ -1,4 +1,4 @@
-"""Service extras messaging (mocked import failure even when extras are installed)."""
+"""Service dependency messaging (mocked import failure)."""
 
 from __future__ import annotations
 
@@ -14,23 +14,21 @@ from googlekit.core.optional import require_extra
     "extra",
     ["gdrive", "gsheets", "gcalendar", "gdocs", "gslides"],
 )
-def test_missing_extra_message_contains_uv_add(extra: str) -> None:
+def test_missing_client_message_contains_uv_add(extra: str) -> None:
     with (
         patch(
             "googlekit.core.optional.import_module",
-            side_effect=ImportError("simulated missing extra"),
+            side_effect=ImportError("simulated missing clients"),
         ),
         pytest.raises(MissingExtraError) as exc_info,
     ):
         require_extra(extra)
     message = str(exc_info.value)
-    assert "support is not installed" in message
-    assert f'uv add "googlekit[{extra}]"' in message
+    assert "requires Google client libraries" in message
+    assert "uv add googlekit" in message
 
 
 def test_require_extra_succeeds_when_module_present() -> None:
-    # With --all-extras synced in CI/dev, discovery should import.
-    # If not installed, skip rather than fail the conceptual contract test above.
     try:
         require_extra("gdrive")
     except MissingExtraError:

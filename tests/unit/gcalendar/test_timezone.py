@@ -62,6 +62,17 @@ def test_event_time_body_all_day() -> None:
     assert end == {"date": "2026-07-12"}
 
 
+def test_event_time_body_all_day_rejects_non_exclusive_end() -> None:
+    with pytest.raises(ValidationError, match="exclusive"):
+        event_time_body(
+            start=date(2026, 7, 11),
+            end=date(2026, 7, 11),
+            time_zone=None,
+            default_timezone=None,
+            all_day=True,
+        )
+
+
 def test_event_time_body_timed_requires_aware() -> None:
     with pytest.raises(ValidationError, match="Naive"):
         event_time_body(

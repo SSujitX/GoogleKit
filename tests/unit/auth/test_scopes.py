@@ -84,6 +84,22 @@ def test_aggregate_scopes_union() -> None:
     assert combined.includes(Scope.DRIVE_FILE)
     assert combined.includes(Scope.SPREADSHEETS_READONLY)
     assert combined.includes(Scope.CALENDAR_EVENTS)
+    assert combined.includes(Scope.CALENDAR_FREEBUSY)
+    assert combined.includes(Scope.CALENDAR_CALENDARS)
+
+
+def test_calendar_readwrite_covers_client_managers() -> None:
+    rw = preset_for("gcalendar", ScopeProfile.READWRITE)
+    assert rw.includes(Scope.CALENDAR_EVENTS)
+    assert rw.includes(Scope.CALENDAR_CALENDARS)
+    assert rw.includes(Scope.CALENDAR_CALENDARLIST)
+    assert rw.includes(Scope.CALENDAR_FREEBUSY)
+
+
+def test_full_calendar_covers_narrower_scopes() -> None:
+    full = ScopeSet.of(Scope.CALENDAR)
+    needed = ScopeSet.of(Scope.CALENDAR_EVENTS, Scope.CALENDAR_FREEBUSY)
+    assert full.covers(needed)
 
 
 def test_from_iterable() -> None:

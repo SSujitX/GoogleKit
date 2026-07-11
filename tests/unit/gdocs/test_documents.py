@@ -145,7 +145,7 @@ def test_export_requires_drive_extra(transport: Transport) -> None:
     ):
         with pytest.raises(MissingExtraError) as exc:
             mgr.export("d1", "pdf")
-        assert "gdrive" in str(exc.value)
+        assert "uv add googlekit" in str(exc.value)
 
 
 def test_export_requires_drive_scopes() -> None:
