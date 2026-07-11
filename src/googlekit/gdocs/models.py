@@ -124,11 +124,12 @@ class ParagraphStyle:
 
 @dataclass(slots=True)
 class TextRange:
-    """A UTF-16 index range within a document segment."""
+    """A UTF-16 index range within a document segment or tab."""
 
     start_index: int
     end_index: int
     segment_id: str | None = None
+    tab_id: str | None = None
 
     def to_api(self) -> dict[str, Any]:
         rng: dict[str, Any] = {
@@ -137,6 +138,8 @@ class TextRange:
         }
         if self.segment_id:
             rng["segmentId"] = self.segment_id
+        if self.tab_id:
+            rng["tabId"] = self.tab_id
         return rng
 
 
