@@ -115,7 +115,9 @@ class OAuthCredentialProvider:
         if not granted:
             # Some token files omit scopes; do not assume the new request was granted.
             return False
-        return self._scopes.values <= granted
+        # Use the same semantic coverage rules as ScopeSet: the full Drive and
+        # Calendar scopes satisfy their narrower service scopes.
+        return ScopeSet(granted).covers(self._scopes)
 
     def _persist(self, creds: Any) -> None:
         try:
@@ -125,7 +127,12 @@ class OAuthCredentialProvider:
 
 
 def _granted_scopes(creds: Any) -> frozenset[str]:
-    raw = getattr(creds, "scopes", None)
+    # Google can grant only a subset during granular consent. ``scopes`` is the
+    # requested set, while ``granted_scopes`` records the authorization result.
+    # Older cached credentials may not have the latter, so retain a safe fallback.
+    raw = getattr(creds, "granted_scopes", None)
+    if not isinstance(raw, (str, list, tuple, set, frozenset)) or not raw:
+        raw = getattr(creds, "scopes", None)
     if not raw:
         return frozenset()
     if isinstance(raw, str):
