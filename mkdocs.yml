@@ -75,7 +75,6 @@ nav:
       - Calendar: calendar.md
       - Docs: docs.md
       - Slides: slides.md
-  - Publishing: publishing.md
 
 plugins:
   - search:
