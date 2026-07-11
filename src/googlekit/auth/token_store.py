@@ -1,0 +1,64 @@
+"""Token persistence backends."""
+
+from __future__ import annotations
+
+import contextlib
+import os
+import stat
+from pathlib import Path
+
+from googlekit.core.exceptions import ConfigurationError
+
+
+class FileTokenStore:
+    """Store OAuth tokens as JSON on disk with restrictive permissions."""
+
+    def __init__(self, path: str | Path) -> None:
+        self.path = Path(path)
+
+    def load(self) -> str | None:
+        if not self.path.exists():
+            return None
+        return self.path.read_text(encoding="utf-8")
+
+    def save(self, token_json: str) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(token_json, encoding="utf-8")
+        # Windows may not support POSIX mode bits fully.
+        with contextlib.suppress(OSError):
+            os.chmod(self.path, stat.S_IRUSR | stat.S_IWUSR)
+
+    def clear(self) -> None:
+        if self.path.exists():
+            self.path.unlink()
+
+
+class InMemoryTokenStore:
+    """Ephemeral token store for tests and short-lived processes."""
+
+    def __init__(self) -> None:
+        self._data: str | None = None
+
+    def load(self) -> str | None:
+        return self._data
+
+    def save(self, token_json: str) -> None:
+        self._data = token_json
+
+    def clear(self) -> None:
+        self._data = None
+
+
+def default_token_path(app_name: str = "googlekit") -> Path:
+    """Return an OS-appropriate user config path for OAuth tokens."""
+    if os.name == "nt":
+        base = Path(os.environ.get("APPDATA") or Path.home() / "AppData" / "Roaming")
+    else:
+        xdg = os.environ.get("XDG_CONFIG_HOME")
+        base = Path(xdg) if xdg else Path.home() / ".config"
+    path = base / app_name / "token.json"
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise ConfigurationError(f"Cannot create config directory: {path.parent}") from exc
+    return path
