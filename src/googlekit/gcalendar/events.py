@@ -267,7 +267,8 @@ class EventsManager:
             end=end,
             description=description,
             location=location,
-            attendees=attendees,
+            # RSVP rebuilds attendees below (and must omit read-only fields).
+            attendees=None if response_status is not None else attendees,
             reminders=reminders,
             recurrence=recurrence,
             all_day=all_day,
@@ -287,15 +288,17 @@ class EventsManager:
             applied = False
             for item in attendees:
                 if isinstance(item, Attendee):
+                    # Use Attendee.self only locally; do not send read-only fields.
                     entry = item.to_api()
                     if item.self:
-                        entry["self"] = True
                         entry["responseStatus"] = response_status
                         applied = True
                     patched.append(entry)
                 elif isinstance(item, dict):
                     entry = dict(item)
-                    if entry.get("self") is True:
+                    is_self = entry.pop("self", None) is True
+                    entry.pop("organizer", None)  # read-only
+                    if is_self:
                         entry["responseStatus"] = response_status
                         applied = True
                     patched.append(entry)
