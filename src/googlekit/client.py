@@ -190,7 +190,7 @@ class GoogleKit:
 
     @property
     def drive(self) -> DriveAPI:
-        """Google Drive API — ``files``, ``folders``, ``permissions``, ``changes``."""
+        """Google Drive API — managers (``files``, …) and shortcuts (``list_files``, …)."""
         if self._drive is None:
             from googlekit.gdrive.client import DriveClient
 
@@ -199,7 +199,7 @@ class GoogleKit:
 
     @property
     def sheets(self) -> SheetsAPI:
-        """Google Sheets API — ``spreadsheets``, ``values``, ``worksheets``, ``formatting``."""
+        """Google Sheets — managers and shortcuts (``read_values``, ``write_values``, …)."""
         if self._sheets is None:
             from googlekit.gsheets.client import SheetsClient
 
@@ -208,7 +208,7 @@ class GoogleKit:
 
     @property
     def calendar(self) -> CalendarAPI:
-        """Google Calendar API — ``calendars``, ``events``, ``freebusy``."""
+        """Google Calendar — managers and shortcuts (``list_events``, ``create_event``, …)."""
         if self._calendar is None:
             from googlekit.gcalendar.client import CalendarClient
 
@@ -217,7 +217,7 @@ class GoogleKit:
 
     @property
     def docs(self) -> DocsAPI:
-        """Google Docs API — ``documents``, ``content``, ``tables``, ``images``."""
+        """Google Docs — managers and shortcuts (``create_document``, ``append_text``, …)."""
         if self._docs is None:
             from googlekit.gdocs.client import DocsClient
 
@@ -226,7 +226,7 @@ class GoogleKit:
 
     @property
     def slides(self) -> SlidesAPI:
-        """Google Slides API — ``presentations``, ``pages``, ``elements``, ``text``, ``images``, ``tables``."""
+        """Google Slides — managers and shortcuts (``create_presentation``, ``add_slide``, …)."""
         if self._slides is None:
             from googlekit.gslides.client import SlidesClient
 
