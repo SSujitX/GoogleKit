@@ -69,27 +69,27 @@ class TablesManager:
     ) -> BatchUpdateResult:
         """Write text into a table cell (replaces existing cell text).
 
-        Cell text object IDs follow the Slides convention
-        ``{tableId}_R{row}_C{column}`` when using auto-generated IDs. Prefer
-        passing the cell's text object ID via ``table_object_id`` when known;
-        otherwise this method uses the conventional ID pattern.
+        Uses the table ``objectId`` plus ``cellLocation`` as required by the
+        Slides ``insertText`` / ``deleteText`` / ``updateTextStyle`` requests.
         """
         require_non_empty(table_object_id, "table_object_id")
         if row_index < 0 or column_index < 0:
             raise ValidationError("row_index and column_index must be >= 0")
         if not text:
             raise ValidationError("text must be non-empty")
-        cell_id = f"{table_object_id}_R{row_index}_C{column_index}"
+        cell_location = {"rowIndex": row_index, "columnIndex": column_index}
         requests: list[dict[str, Any]] = [
             {
                 "deleteText": {
-                    "objectId": cell_id,
+                    "objectId": table_object_id,
+                    "cellLocation": cell_location,
                     "textRange": {"type": "ALL"},
                 }
             },
             {
                 "insertText": {
-                    "objectId": cell_id,
+                    "objectId": table_object_id,
+                    "cellLocation": cell_location,
                     "text": text,
                     "insertionIndex": 0,
                 }
@@ -101,7 +101,8 @@ class TablesManager:
                 requests.append(
                     {
                         "updateTextStyle": {
-                            "objectId": cell_id,
+                            "objectId": table_object_id,
+                            "cellLocation": cell_location,
                             "style": text_style,
                             "textRange": {"type": "ALL"},
                             "fields": fields,
