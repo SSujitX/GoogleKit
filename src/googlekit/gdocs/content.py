@@ -34,6 +34,7 @@ class ContentManager:
         index: int,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Insert ``text`` at a UTF-16 ``index``.
 
@@ -42,9 +43,13 @@ class ContentManager:
             text: Text to insert (may include newlines to create paragraphs).
             index: UTF-16 insertion index (body content usually starts at 1).
             segment_id: Optional header/footer/footnote segment ID.
+            tab_id: Optional Docs tab ID (multi-tab documents).
 
         Returns:
             Batch update result.
+
+        Note:
+            Indexes are measured in UTF-16 code units per the Docs API.
         """
         require_non_empty(document_id, "document_id")
         if not text:
@@ -54,6 +59,8 @@ class ContentManager:
         location: dict[str, Any] = {"index": index}
         if segment_id:
             location["segmentId"] = segment_id
+        if tab_id:
+            location["tabId"] = tab_id
         return self._documents.batch_update(
             document_id,
             [{"insertText": {"location": location, "text": text}}],
@@ -82,6 +89,7 @@ class ContentManager:
         end_index: int,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Delete the UTF-16 range ``[start_index, end_index)``.
 
@@ -90,13 +98,14 @@ class ContentManager:
             start_index: UTF-16 start (inclusive).
             end_index: UTF-16 end (exclusive).
             segment_id: Optional segment ID.
+            tab_id: Optional Docs tab ID (multi-tab documents).
 
         Returns:
             Batch update result.
         """
         if start_index < 0 or end_index <= start_index:
             raise ValidationError("Invalid delete range")
-        rng = TextRange(start_index, end_index, segment_id).to_api()
+        rng = TextRange(start_index, end_index, segment_id, tab_id).to_api()
         return self._documents.batch_update(
             document_id,
             [{"deleteContentRange": {"range": rng}}],
