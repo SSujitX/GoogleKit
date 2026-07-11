@@ -12,7 +12,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--version", action="store_true", help="Print package version")
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("doctor", help="Check environment and installed extras")
+    sub.add_parser("doctor", help="Check environment and Google client libraries")
     auth = sub.add_parser("auth", help="Authentication helpers")
     auth_sub = auth.add_subparsers(dest="auth_command")
     auth_sub.add_parser("status", help="Show non-secret auth status")
@@ -45,8 +45,10 @@ def _doctor() -> int:
 
     print(f"Python: {sys.version.split()[0]}")
     extras = installed_extras()
+    clients_ok = any(extras.values())
+    print(f"Google client libraries: {'installed' if clients_ok else 'missing'}")
     for name, ok in extras.items():
-        print(f"Extra {name}: {'installed' if ok else 'missing'}")
+        print(f"  {name}: {'ok' if ok else 'unavailable'}")
 
     path, is_sa = auto_detect_credentials_file()
     if path:
