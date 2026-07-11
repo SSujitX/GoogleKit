@@ -81,11 +81,11 @@ def test_call_with_retries_exhausts() -> None:
     def fn() -> None:
         raise RateLimitError("always")
 
-    # When last attempt fails with retryable error, call_with_retries re-raises
-    # the original exception (not RetryExhaustedError) per current implementation.
-    with pytest.raises(RateLimitError):
+    with pytest.raises(RetryExhaustedError) as exc_info:
         call_with_retries(fn, policy=RetryPolicy(max_attempts=3, jitter=0.0), sleep=sleep)
     assert sleep.call_count == 2
+    assert exc_info.value.attempts == 3
+    assert isinstance(exc_info.value.last_error, RateLimitError)
 
 
 def test_call_with_retries_custom_predicate() -> None:
