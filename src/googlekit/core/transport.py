@@ -38,12 +38,23 @@ def map_http_error(exc: BaseException) -> APIError:
         except Exception:  # pragma: no cover
             reason = None
     message = reason or str(exc) or "Google API request failed"
-    # Never include authorization headers in messages (message comes from API body).
+    reason_l = (reason or "").lower()
+    reason_compact = reason_l.replace(" ", "").replace("_", "")
+
     if status == 404:
         return NotFoundError(message, status_code=404, reason=reason, request_id=request_id)
     if status == 409 or status == 412:
         return ConflictError(message, status_code=status, reason=reason, request_id=request_id)
-    if status == 429:
+
+    is_rate_limited = status == 429 or (
+        status == 403
+        and (
+            "ratelimitexceeded" in reason_compact
+            or "userratelimitexceeded" in reason_compact
+            or "rate limit" in reason_l
+        )
+    )
+    if is_rate_limited:
         retry_after = None
         if resp is not None:
             headers = getattr(resp, "headers", {}) or {}
@@ -56,11 +67,15 @@ def map_http_error(exc: BaseException) -> APIError:
         return RateLimitError(
             message,
             retry_after=retry_after,
-            status_code=429,
+            status_code=int(status) if isinstance(status, int) else 429,
             reason=reason,
             request_id=request_id,
         )
-    if status == 403 and reason and "quota" in reason.lower():
+    if status == 403 and (
+        "quota" in reason_l
+        or "dailylimitexceeded" in reason_compact
+        or "quotaexceeded" in reason_compact
+    ):
         return QuotaExceededError(message, status_code=403, reason=reason, request_id=request_id)
     return APIError(message, status_code=status, reason=reason, request_id=request_id)
 
@@ -98,25 +113,45 @@ class Transport:
         if key in self._services:
             return self._services[key]
 
+        from google.auth.transport.requests import AuthorizedSession
         from googleapiclient.discovery import build
+        from googleapiclient.http import build_http
 
         creds = self.credentials()
-        # google-api-python-client v2+ ships static discovery documents.
-        # Use the library default (static_discovery=True); do not disable
-        # discovery caching — that is a v1-era pattern.
-        service = build(
-            api,
-            api_version,
-            credentials=creds,
-        )
-        # Attach a descriptive user-agent via http when available.
-        http = getattr(service, "_http", None)
-        if http is not None and hasattr(http, "headers"):
-            ua = self._config.user_agent or USER_AGENT
+        http = build_http()
+        # Apply configured timeout to the underlying httplib2 transport.
+        timeout = self._config.timeout
+        if timeout is not None:
             try:
-                http.headers["user-agent"] = ua
+                http.timeout = float(timeout)
             except Exception:  # pragma: no cover
-                logger.debug("Unable to set user-agent on service HTTP client")
+                logger.debug("Unable to set HTTP timeout on discovery transport")
+
+        ua = self._config.user_agent or USER_AGENT
+        try:
+            # httplib2.Http exposes .headers as a dict-like object.
+            http.headers = getattr(http, "headers", None) or {}
+            http.headers["user-agent"] = ua
+        except Exception:  # pragma: no cover
+            logger.debug("Unable to set user-agent on discovery HTTP client")
+
+        try:
+            from google_auth_httplib2 import AuthorizedHttp
+
+            authorized = AuthorizedHttp(creds, http=http)
+        except Exception:
+            # Fallback: discovery build with credentials (library default http).
+            authorized = None
+
+        if authorized is not None:
+            service = build(api, api_version, http=authorized)
+        else:
+            service = build(api, api_version, credentials=creds)
+            # Best-effort UA on the authorized session if present.
+            session = getattr(service, "_http", None)
+            if isinstance(session, AuthorizedSession):
+                session.headers["User-Agent"] = ua
+
         self._services[key] = service
         return service
 
@@ -128,7 +163,6 @@ class Transport:
             try:
                 return request.execute()
             except Exception as exc:
-                # Map HttpError; re-raise GoogleKit errors; wrap unknown transport.
                 name = type(exc).__name__
                 if name == "HttpError" or hasattr(exc, "resp"):
                     mapped = map_http_error(exc)
