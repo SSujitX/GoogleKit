@@ -1,0 +1,124 @@
+[project]
+name = "googlekit"
+version = "0.1.0"
+description = "Unofficial Python SDK for Google Drive, Sheets, Calendar, Docs, and Slides"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "SSujitX", email = "ssujitxx@gmail.com" }
+]
+keywords = [
+    "google",
+    "google-drive",
+    "google-sheets",
+    "google-calendar",
+    "google-docs",
+    "google-slides",
+    "workspace",
+    "oauth",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",`
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/SSujitX/GoogleKit"
+Documentation = "https://github.com/SSujitX/GoogleKit#readme"
+Repository = "https://github.com/SSujitX/GoogleKit"
+Issues = "https://github.com/SSujitX/GoogleKit/issues"
+Changelog = "https://github.com/SSujitX/GoogleKit/blob/main/RELEASE.md"
+
+[project.scripts]
+googlekit = "googlekit.__main__:main"
+
+[project.optional-dependencies]
+gdrive = [
+    "google-api-python-client>=2.198.0",
+    "google-auth>=2.55.2",
+    "google-auth-oauthlib>=1.4.0",
+    "google-auth-httplib2>=0.4.0",
+]
+gsheets = [
+    "google-api-python-client>=2.198.0",
+    "google-auth>=2.55.2",
+    "google-auth-oauthlib>=1.4.0",
+    "google-auth-httplib2>=0.4.0",
+]
+gcalendar = [
+    "google-api-python-client>=2.198.0",
+    "google-auth>=2.55.2",
+    "google-auth-oauthlib>=1.4.0",
+    "google-auth-httplib2>=0.4.0",
+]
+gdocs = [
+    "google-api-python-client>=2.198.0",
+    "google-auth>=2.55.2",
+    "google-auth-oauthlib>=1.4.0",
+    "google-auth-httplib2>=0.4.0",
+]
+gslides = [
+    "google-api-python-client>=2.198.0",
+    "google-auth>=2.55.2",
+    "google-auth-oauthlib>=1.4.0",
+    "google-auth-httplib2>=0.4.0",
+]
+all = [
+    "google-api-python-client>=2.198.0",
+    "google-auth>=2.55.2",
+    "google-auth-oauthlib>=1.4.0",
+    "google-auth-httplib2>=0.4.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/googlekit"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/docs",
+    "/examples",
+    "/README.md",
+    "/LICENSE",
+    "/RELEASE.md",
+    "/SECURITY.md",
+    "/CONTRIBUTING.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: live Google API tests (disabled by default)",
+]
+addopts = "-q --strict-markers"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["googlekit"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
