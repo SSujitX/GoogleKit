@@ -97,6 +97,12 @@ def test_map_http_error_quota() -> None:
     assert isinstance(mapped, QuotaExceededError)
 
 
+def test_map_http_error_403_rate_limit() -> None:
+    mapped = map_http_error(_http_exc(403, reason="userRateLimitExceeded"))
+    assert isinstance(mapped, RateLimitError)
+    assert mapped.status_code == 403
+
+
 def test_map_http_error_generic() -> None:
     mapped = map_http_error(_http_exc(500, reason="internal", headers={"x-goog-request-id": "rid"}))
     assert isinstance(mapped, APIError)

@@ -32,13 +32,18 @@ def test_oauth_missing_client_secrets_raises(tmp_path: Path) -> None:
 
 def test_oauth_uses_valid_cached_token(client_secrets_file: Path) -> None:
     store = InMemoryTokenStore()
-    store.save(json.dumps({"token": "cached"}))
+    store.save(json.dumps({"token": "cached", "scopes": ["https://www.googleapis.com/auth/drive.file"]}))
     provider = OAuthCredentialProvider(
         client_secrets_file,
         scopes=_scopes(),
         token_store=store,
     )
-    creds = SimpleNamespace(valid=True, expired=False, refresh_token=None)
+    creds = SimpleNamespace(
+        valid=True,
+        expired=False,
+        refresh_token=None,
+        scopes=["https://www.googleapis.com/auth/drive.file"],
+    )
 
     with (
         patch("googlekit.auth.oauth.require_extra"),
@@ -50,9 +55,49 @@ def test_oauth_uses_valid_cached_token(client_secrets_file: Path) -> None:
         result = provider.credentials()
 
     assert result is creds
-    from_info.assert_called_once()
-    # Second call uses cached provider credentials without re-auth.
+    # Must load without injecting newly requested scopes into from_authorized_user_info.
+    assert from_info.call_args.args[0]  # info dict
+    assert len(from_info.call_args.args) == 1 or from_info.call_args.kwargs.get("scopes") in (
+        None,
+        [],
+    )
     assert provider.credentials() is creds
+
+
+def test_oauth_reauths_when_cached_scopes_insufficient(client_secrets_file: Path) -> None:
+    store = InMemoryTokenStore()
+    store.save("{}")
+    provider = OAuthCredentialProvider(
+        client_secrets_file,
+        scopes=ScopeSet.of(Scope.DRIVE_FILE, Scope.SPREADSHEETS),
+        token_store=store,
+    )
+    narrow = SimpleNamespace(
+        valid=True,
+        expired=False,
+        refresh_token=None,
+        scopes=["https://www.googleapis.com/auth/drive.file"],
+    )
+    fresh = MagicMock()
+    fresh.to_json.return_value = '{"access_token": "fresh"}'
+    flow = MagicMock()
+    flow.run_local_server.return_value = fresh
+
+    with (
+        patch("googlekit.auth.oauth.require_extra"),
+        patch(
+            "google.oauth2.credentials.Credentials.from_authorized_user_info",
+            return_value=narrow,
+        ),
+        patch(
+            "google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file",
+            return_value=flow,
+        ),
+    ):
+        result = provider.credentials()
+
+    assert result is fresh
+    flow.run_local_server.assert_called_once()
 
 
 def test_oauth_refresh_expired_token(client_secrets_file: Path) -> None:
@@ -67,6 +112,7 @@ def test_oauth_refresh_expired_token(client_secrets_file: Path) -> None:
     creds.valid = False
     creds.expired = True
     creds.refresh_token = "refresh-token"
+    creds.scopes = ["https://www.googleapis.com/auth/drive.file"]
     creds.to_json.return_value = '{"access_token": "new"}'
 
     def _refresh(_request: object) -> None:
@@ -153,6 +199,7 @@ def test_oauth_refresh_failure_falls_back_to_browser(client_secrets_file: Path) 
     expired.valid = False
     expired.expired = True
     expired.refresh_token = "rt"
+    expired.scopes = ["https://www.googleapis.com/auth/drive.file"]
     expired.refresh.side_effect = RuntimeError("network")
 
     fresh = MagicMock()
