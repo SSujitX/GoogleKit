@@ -280,15 +280,28 @@ class EventsManager:
         )
         if response_status is not None:
             if attendees is None:
-                raise ValidationError("response_status requires attendees including self")
+                raise ValidationError(
+                    "response_status requires attendees including an entry with self=True"
+                )
+            applied = False
             for attendee in body.get("attendees") or []:
-                attendee["responseStatus"] = response_status
+                if attendee.get("self") is True:
+                    attendee["responseStatus"] = response_status
+                    applied = True
+            if not applied:
+                raise ValidationError(
+                    "response_status requires an attendee marked self=True "
+                    "(the authenticated participant)"
+                )
         kwargs: dict[str, Any] = {
             "calendarId": cid,
             "eventId": eid,
             "body": body,
             "sendUpdates": str(send_updates),
         }
+        if response_status is not None:
+            # Preserve other attendees when only updating the self RSVP payload.
+            kwargs["attendeesOmitted"] = True
         if conference:
             kwargs["conferenceDataVersion"] = 1
         request = self._service().events().patch(**kwargs)
