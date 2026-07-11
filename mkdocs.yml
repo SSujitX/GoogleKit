@@ -33,7 +33,6 @@ theme:
   features:
     - navigation.sections
     - navigation.top
-    - navigation.indexes
     - content.code.copy
     - content.tabs.link
     - search.suggest
@@ -82,7 +81,9 @@ plugins:
   - search:
       lang: en
   - meta
+  # Social cards need system Cairo. Enable in docs CI via GOOGLEKIT_SOCIAL_CARDS=true.
   - social:
+      enabled: !ENV [GOOGLEKIT_SOCIAL_CARDS, false]
       cards: true
       cards_layout_options:
         background_color: "#3949AB"
