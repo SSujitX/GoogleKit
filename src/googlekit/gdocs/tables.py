@@ -235,18 +235,26 @@ class TablesManager:
     def format_cell(
         self,
         document_id: DocumentId,
-        start_index: int,
-        end_index: int,
+        table_start_index: int,
         *,
+        row_index: int = 0,
+        column_index: int = 0,
+        row_span: int = 1,
+        column_span: int = 1,
         background_color: dict[str, Any] | None = None,
         border_color: dict[str, Any] | None = None,
         border_width_pt: float | None = None,
     ) -> BatchUpdateResult:
-        """Apply basic table cell style over a cell content range.
+        """Apply basic table cell style via ``updateTableCellStyle``.
 
-        Uses ``updateTableCellStyle`` when a style is provided. Colors should be
-        Docs ``OptionalColor`` objects (e.g. ``{"color": {"rgbColor": {...}}}``).
+        ``table_start_index`` is the Docs index of the table start (not a content
+        range). Colors should be Docs ``OptionalColor`` objects
+        (e.g. ``{"color": {"rgbColor": {...}}}``).
         """
+        if row_index < 0 or column_index < 0:
+            raise ValidationError("row_index and column_index must be >= 0")
+        if row_span < 1 or column_span < 1:
+            raise ValidationError("row_span and column_span must be >= 1")
         style: dict[str, Any] = {}
         fields: list[str] = []
         if background_color is not None:
@@ -258,10 +266,9 @@ class TablesManager:
                 border["color"] = border_color
             if border_width_pt is not None:
                 border["width"] = {"magnitude": border_width_pt, "unit": "PT"}
-            for edge in ("top", "bottom", "left", "right"):
-                style[edge] = {"width": border.get("width"), "dashStyle": "SOLID"}
-                if "color" in border:
-                    style[edge]["color"] = border["color"]
+            # Official TableCellStyle uses borderTop/Bottom/Left/Right.
+            for edge in ("borderTop", "borderBottom", "borderLeft", "borderRight"):
+                style[edge] = dict(border)
                 fields.append(edge)
         if not fields:
             raise ValidationError("Provide at least one formatting option")
@@ -272,10 +279,12 @@ class TablesManager:
                     "updateTableCellStyle": {
                         "tableRange": {
                             "tableCellLocation": {
-                                "tableStartLocation": {"index": start_index},
-                                "rowIndex": 0,
-                                "columnIndex": 0,
+                                "tableStartLocation": {"index": table_start_index},
+                                "rowIndex": row_index,
+                                "columnIndex": column_index,
                             },
+                            "rowSpan": row_span,
+                            "columnSpan": column_span,
                         },
                         "tableCellStyle": style,
                         "fields": ",".join(fields),
