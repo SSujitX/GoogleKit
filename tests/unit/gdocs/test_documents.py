@@ -171,6 +171,31 @@ def test_set_heading_builds_named_style(transport: Transport) -> None:
         assert req["updateParagraphStyle"]["paragraphStyle"]["namedStyleType"] == "HEADING_1"
 
 
+def test_content_writes_target_requested_tab(transport: Transport) -> None:
+    content = ContentManager(transport)
+    with patch.object(content._documents, "batch_update") as bu:
+        bu.return_value = MagicMock()
+
+        content.style_text("d1", 1, 4, TextStyle(bold=True), tab_id="tab-2")
+        request = bu.call_args.args[1][0]
+        assert request["updateTextStyle"]["range"]["tabId"] == "tab-2"
+
+        content.insert_page_break("d1", 4, tab_id="tab-2")
+        request = bu.call_args.args[1][0]
+        assert request["insertPageBreak"]["location"]["tabId"] == "tab-2"
+
+        content.create_named_range("d1", "target", 1, 4, tab_id="tab-2")
+        request = bu.call_args.args[1][0]
+        assert request["createNamedRange"]["range"]["tabId"] == "tab-2"
+
+        content.insert_styled_text(
+            "d1", "Hi", 1, TextStyle(italic=True), tab_id="tab-2"
+        )
+        requests = bu.call_args.args[1]
+        assert requests[0]["insertText"]["location"]["tabId"] == "tab-2"
+        assert requests[1]["updateTextStyle"]["range"]["tabId"] == "tab-2"
+
+
 def test_text_style_to_api() -> None:
     style, fields = TextStyle(bold=True, font_size_pt=14.0, link_url="https://ex.com").to_api()
     assert style["bold"] is True
