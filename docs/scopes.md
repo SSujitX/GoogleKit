@@ -7,7 +7,7 @@ GoogleKit centralizes scopes in `googlekit.auth.scopes`.
 - Do not request all scopes by default
 - Prefer least privilege via `ScopeProfile`
 - Never silently escalate privileges
-- Drive scopes distinguish app files, metadata, read-only, and full access
+- `ScopeSet.covers()` / `missing()` treat full `drive` / `calendar` as covering narrower scopes
 
 ## Profiles
 
@@ -15,17 +15,19 @@ GoogleKit centralizes scopes in `googlekit.auth.scopes`.
 | ------- | ------- |
 | `metadata` | Minimal metadata / list-oriented access |
 | `readonly` | Read without write |
-| `readwrite` | Typical app create/edit (default) |
+| `readwrite` | Typical app create/edit (**default**) |
 | `full` | Broadest service scope when truly required |
 
 ## Drive presets
 
-| Profile | Scope |
-| ------- | ----- |
+| Profile | Scope(s) |
+| ------- | -------- |
 | `metadata` | `drive.metadata.readonly` |
 | `readonly` | `drive.readonly` |
 | `readwrite` | `drive.file` (files created/opened by the app) |
 | `full` | `drive` |
+
+Also available as constants: `drive.appdata`, `drive.appfolder`, `drive.apps.readonly`, `drive.meet.readonly`, `drive.install`, metadata variants.
 
 ## Sheets / Docs / Slides
 
@@ -35,14 +37,20 @@ GoogleKit centralizes scopes in `googlekit.auth.scopes`.
 | Docs | `documents.readonly` | `documents` |
 | Slides | `presentations.readonly` | `presentations` |
 
-## Calendar
+Export/share for Docs/Sheets/Slides also needs a Drive scope (usually `drive.file` or `drive`).
 
-| Profile | Scope |
-| ------- | ----- |
+## Calendar presets
+
+`CalendarClient` exposes **events**, **calendars**, and **freebusy**. Default presets authorize all three:
+
+| Profile | Scopes |
+| ------- | ------ |
 | `metadata` | `calendar.readonly` |
-| `readonly` | `calendar.events.readonly` |
-| `readwrite` | `calendar.events` |
+| `readonly` | `calendar.events.readonly` + `calendar.calendarlist.readonly` + `calendar.calendars.readonly` + `calendar.freebusy` |
+| `readwrite` | `calendar.events` + `calendar.calendars` + `calendar.calendarlist` + `calendar.freebusy` |
 | `full` | `calendar` |
+
+Additional constants exist for `calendar.events.freebusy`, `calendar.app.created`, `calendar.settings.readonly`, and more.
 
 ## Aggregation
 
@@ -55,10 +63,17 @@ scopes = aggregate_scopes(
 )
 ```
 
-Unified client helpers:
+Unified client:
 
 ```python
-GoogleKit.from_oauth(..., services=["gdrive", "gsheets"], profile=ScopeProfile.READWRITE)
+from googlekit import GoogleKit
+from googlekit.auth.scopes import ScopeProfile
+
+client = GoogleKit.from_oauth(
+    "client_secrets.json",
+    services=["gdrive", "gsheets", "gcalendar"],
+    profile=ScopeProfile.READWRITE,
+)
 ```
 
 ## Insufficient scopes
