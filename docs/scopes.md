@@ -1,6 +1,16 @@
+---
+title: GoogleKit OAuth scopes and ScopeProfile presets
+description: >-
+  Least-privilege OAuth scope presets for Drive, Sheets, Calendar, Docs, and
+  Slides. ScopeProfile, aggregation, and InsufficientScopesError guidance.
+---
+
 # OAuth scopes
 
 GoogleKit centralizes scopes in `googlekit.auth.scopes`.
+
+**Official Google docs:** [OAuth 2.0 scopes](https://developers.google.com/identity/protocols/oauth2/scopes) ·
+[Using OAuth 2.0 to access Google APIs](https://developers.google.com/identity/protocols/oauth2)
 
 ## Principles
 
