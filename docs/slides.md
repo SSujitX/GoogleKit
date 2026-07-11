@@ -50,6 +50,26 @@ Default scopes use `ScopeProfile.READWRITE` → `https://www.googleapis.com/auth
 | `slides.images` | Insert, replace, position/size images |
 | `slides.tables` | Create tables, write cells, insert/delete rows/cols, format cells |
 
+### Optional shortcuts vs managers
+
+Both appear after `slides.` (typed as `SlidesAPI`).
+
+| Shortcut | Delegates to |
+| -------- | ------------ |
+| `create_presentation(title)` | `presentations.create(title)` |
+| `get_presentation(id)` | `presentations.get(id)` |
+| `add_slide(id, layout=..., ...)` | `pages.add(id, ...)` |
+
+```python
+# Manager
+deck = slides.presentations.create("Pitch Deck")
+slides.pages.add(deck.id)
+
+# Shortcut (equivalent)
+deck = slides.create_presentation("Pitch Deck")
+slides.add_slide(deck.id)
+```
+
 ---
 
 ## Units: EMU and points
