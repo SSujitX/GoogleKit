@@ -114,7 +114,10 @@ end = offset_utf16(1, title)  # 1 + utf16_len(title)
 
 ## Multi-tab documents (`tab_id`)
 
-Newer Docs can have multiple tabs. Methods that accept a location/range support optional `tab_id` (and `segment_id` for headers/footers/footnotes):
+Newer Docs can have multiple tabs. Content methods that accept a location or
+range support optional `tab_id` (and `segment_id` for
+headers/footers/footnotes), including insertion, deletion, styling, headings,
+lists, links, page breaks, and named ranges:
 
 - `docs.content.insert_text(..., tab_id=...)`
 - `docs.content.delete_range(..., tab_id=...)`
@@ -281,7 +284,7 @@ docs.content.replace_placeholders(
 )
 ```
 
-### `style_text(document_id, start_index, end_index, style, *, segment_id=None)`
+### `style_text(document_id, start_index, end_index, style, *, segment_id=None, tab_id=None)`
 
 ```python
 from googlekit.gdocs import TextStyle
