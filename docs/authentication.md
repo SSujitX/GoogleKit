@@ -1,6 +1,15 @@
 # Authentication
 
 GoogleKit supports three primary credential methods plus auto-detection.
+Full site: [https://ssujitx.github.io/GoogleKit/](https://ssujitx.github.io/GoogleKit/).
+
+## Choose a method
+
+| Method | Factory | Best for |
+| ------ | ------- | -------- |
+| Application Default Credentials | `from_adc()` / `auto()` | Local dev, GCP |
+| Service account | `from_service_account()` | Servers, bots, CI |
+| OAuth 2.0 desktop | `from_oauth()` | Personal Drive / interactive apps |
 
 ## OAuth 2.0 (desktop)
 
@@ -8,18 +17,26 @@ Uses the installed-app local-server flow (no deprecated OOB).
 
 ```python
 from googlekit import GoogleKit
+from googlekit.auth.scopes import ScopeProfile
 
-kit = GoogleKit.from_oauth(
-    client_secrets="client_secret.json",
+client = GoogleKit.from_oauth(
+    client_secrets="client_secrets.json",
     token_path=None,  # OS user config dir by default
     services=["gdrive", "gsheets"],
-    profile="readwrite",
+    profile=ScopeProfile.READWRITE,
 )
 ```
 
 - Tokens refresh automatically when possible
 - Expanding scopes triggers reauthorization
 - Default token path is under the user config directory (`FileTokenStore`), never inside the package install
+
+**Cloud Console setup (summary):**
+
+1. Create a project and enable the APIs you need
+2. Configure the OAuth consent screen (add yourself as a test user while testing)
+3. Create credentials → **OAuth client ID** → **Desktop app**
+4. Download JSON → save as `client_secrets.json`
 
 See `examples/auth/oauth_desktop.py`.
 
@@ -28,17 +45,19 @@ See `examples/auth/oauth_desktop.py`.
 ```python
 from googlekit import GoogleKit
 
-kit = GoogleKit.from_service_account(
-    credentials_file="service-account.json",
+client = GoogleKit.from_service_account(
+    credentials_file="service_account.json",
     subject=None,  # set for Workspace domain-wide delegation
-    services=["gsheets"],
+    services=["gsheets", "gdrive"],
 )
 ```
 
 !!! important
     Ordinary service accounts do **not** automatically access a personal user's files.
-    Share Drive/Sheets resources with the service account email, or configure
+    Share Drive/Sheets/Docs/Slides resources with the service account email, or configure
     Workspace domain-wide delegation and pass `subject`.
+
+If your org blocks key creation (`iam.disableServiceAccountKeyCreation`), use OAuth or ADC instead.
 
 See `examples/auth/service_account.py`.
 
@@ -47,7 +66,7 @@ See `examples/auth/service_account.py`.
 ```python
 from googlekit import GoogleKit
 
-kit = GoogleKit.from_adc(
+client = GoogleKit.from_adc(
     quota_project_id=None,
     services=["gcalendar"],
 )
@@ -61,28 +80,60 @@ gcloud auth application-default login
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
 ```
 
+ADC order: `GOOGLE_APPLICATION_CREDENTIALS` → gcloud user ADC → GCE/Cloud Run metadata.
+
 See `examples/auth/adc.py`.
 
 ## Auto-detect
 
 ```python
-kit = GoogleKit.auto(services=["gdrive"])
+client = GoogleKit.auto(services=["gdrive"])
 ```
 
-Order: try ADC → look for `service_account.json` / `client_secrets.json` (and variants) in the working directory → raise `AuthenticationError` with guidance.
+Order:
 
-## Sharing credentials
+1. Try ADC
+2. Look for service-account JSON in the working directory (`service_account.json`, `service_account_key.json`, `sa_credentials.json`)
+3. Look for OAuth client JSON (`client_secrets.json`, `client_secret.json`, `credentials.json`, `oauth_credentials.json`)
+4. Raise `AuthenticationError` with setup guidance
+
+## Per-service clients
 
 ```python
-from googlekit.client import share_provider
+from googlekit.gdrive import DriveClient
+from googlekit.gsheets import SheetsClient
 
-provider = share_provider(kit)
-# Pass the same provider into individual service clients
+drive = DriveClient.from_oauth("client_secrets.json")
+sheets = SheetsClient.from_service_account("service_account.json")
 ```
+
+Same factories exist on `CalendarClient`, `DocsClient`, and `SlidesClient`.
+
+## Sharing credentials across clients
+
+```python
+from googlekit import GoogleKit
+from googlekit.client import share_provider
+from googlekit.gdrive import DriveClient
+
+client = GoogleKit.auto(services=["gdrive", "gsheets"])
+provider = share_provider(client)
+drive = DriveClient(provider)
+```
+
+## CLI helpers
+
+```bash
+uv run googlekit doctor
+uv run googlekit auth status
+```
+
+These print non-secret status only (credential file detected, token present, client libraries installed).
 
 ## Security
 
 - Never commit secrets or tokens
 - Never log credential JSON or tokens
 - Restrict file permissions where supported
-- Prefer least-privilege scopes
+- Prefer least-privilege scopes (see [Scopes](scopes.md))
+- Public Drive sharing requires an explicit `public=True` guard in GoogleKit
