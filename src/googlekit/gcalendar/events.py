@@ -270,8 +270,11 @@ class EventsManager:
             status=status,
             conference=conference,
         )
-        if response_status is not None and not body.get("attendees"):
-            raise ValidationError("response_status requires attendees including self")
+        if response_status is not None:
+            if attendees is None:
+                raise ValidationError("response_status requires attendees including self")
+            for attendee in body.get("attendees") or []:
+                attendee["responseStatus"] = response_status
         kwargs: dict[str, Any] = {
             "calendarId": cid,
             "eventId": eid,
