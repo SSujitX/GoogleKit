@@ -80,9 +80,16 @@ class FormattingManager(LayoutFormattingMixin):
         start_col: int,
         end_col: int,
         pattern: str,
+        *,
+        number_format_type: str = "NUMBER",
     ) -> BatchUpdateResponse:
-        """Set a number format pattern (e.g. ``0.00%``, ``yyyy-mm-dd``)."""
+        """Set a number format pattern (e.g. ``0.00%``, ``yyyy-mm-dd``).
+
+        ``number_format_type`` must be a Sheets ``NumberFormat.type`` value such as
+        ``NUMBER``, ``DATE``, ``DATE_TIME``, ``TIME``, ``PERCENT``, or ``CURRENCY``.
+        """
         require_non_empty(pattern, "pattern")
+        require_non_empty(number_format_type, "number_format_type")
         return self._batch(
             spreadsheet_id,
             [
@@ -92,7 +99,14 @@ class FormattingManager(LayoutFormattingMixin):
                     end_row,
                     start_col,
                     end_col,
-                    {"userEnteredFormat": {"numberFormat": {"type": "NUMBER", "pattern": pattern}}},
+                    {
+                        "userEnteredFormat": {
+                            "numberFormat": {
+                                "type": number_format_type,
+                                "pattern": pattern,
+                            }
+                        }
+                    },
                     "userEnteredFormat.numberFormat",
                 )
             ],
@@ -185,10 +199,17 @@ class FormattingManager(LayoutFormattingMixin):
         left: bool = True,
         right: bool = True,
     ) -> BatchUpdateResponse:
-        """Apply borders to a range."""
-        border: dict[str, Any] = {"style": style, "width": width}
+        """Apply borders to a range.
+
+        Uses non-deprecated ``Border`` fields: ``style`` and optional ``colorStyle``.
+        ``width`` is accepted for backward compatibility but ignored (width is implied
+        by ``style`` in the current Sheets API).
+        """
+        border: dict[str, Any] = {"style": style}
         if color:
-            border["color"] = color
+            border["colorStyle"] = {"rgbColor": color}
+        # width is deprecated on Border; keep the param for callers but do not send it.
+        _ = width
         update: dict[str, Any] = {}
         for side, enabled in (
             ("top", top),
