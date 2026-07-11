@@ -1,6 +1,6 @@
 # Google Calendar
 
-Install: `uv add "googlekit[gcalendar]"`
+Install: `uv add googlekit`
 
 Enable the **Google Calendar API**.
 
