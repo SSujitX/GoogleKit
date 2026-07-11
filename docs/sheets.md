@@ -1,6 +1,6 @@
 # Google Sheets
 
-Install: `uv add "googlekit[gsheets]"`
+Install: `uv add googlekit`
 
 Enable the **Google Sheets API**. Export/share via Drive also needs the Drive API and scopes.
 
