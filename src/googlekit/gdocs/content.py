@@ -186,12 +186,13 @@ class ContentManager:
         style: TextStyle,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Apply a :class:`TextStyle` to a UTF-16 range."""
         text_style, fields = style.to_api()
         if not fields:
             raise ValidationError("style has no fields to update")
-        rng = TextRange(start_index, end_index, segment_id).to_api()
+        rng = TextRange(start_index, end_index, segment_id, tab_id).to_api()
         return self._documents.batch_update(
             document_id,
             [
@@ -213,12 +214,13 @@ class ContentManager:
         style: ParagraphStyle,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Apply a :class:`ParagraphStyle` to paragraphs overlapping a range."""
         para_style, fields = style.to_api()
         if not fields:
             raise ValidationError("style has no fields to update")
-        rng = TextRange(start_index, end_index, segment_id).to_api()
+        rng = TextRange(start_index, end_index, segment_id, tab_id).to_api()
         return self._documents.batch_update(
             document_id,
             [
@@ -240,6 +242,7 @@ class ContentManager:
         heading: NamedStyleType | str,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Apply a named heading style to paragraphs in a range."""
         return self.style_paragraph(
@@ -248,6 +251,7 @@ class ContentManager:
             end_index,
             ParagraphStyle(named_style_type=heading),
             segment_id=segment_id,
+            tab_id=tab_id,
         )
 
     def insert_page_break(
@@ -256,6 +260,7 @@ class ContentManager:
         index: int,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Insert a page break at a UTF-16 index."""
         if index < 1:
@@ -263,6 +268,8 @@ class ContentManager:
         location: dict[str, Any] = {"index": index}
         if segment_id:
             location["segmentId"] = segment_id
+        if tab_id:
+            location["tabId"] = tab_id
         return self._documents.batch_update(
             document_id,
             [{"insertPageBreak": {"location": location}}],
@@ -276,9 +283,10 @@ class ContentManager:
         *,
         preset: BulletPreset | str = BulletPreset.BULLET_DISC_CIRCLE_SQUARE,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Apply bullets / numbering to paragraphs in a range."""
-        rng = TextRange(start_index, end_index, segment_id).to_api()
+        rng = TextRange(start_index, end_index, segment_id, tab_id).to_api()
         return self._documents.batch_update(
             document_id,
             [
@@ -298,9 +306,10 @@ class ContentManager:
         end_index: int,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Remove bullets / numbering from paragraphs in a range."""
-        rng = TextRange(start_index, end_index, segment_id).to_api()
+        rng = TextRange(start_index, end_index, segment_id, tab_id).to_api()
         return self._documents.batch_update(
             document_id,
             [{"deleteParagraphBullets": {"range": rng}}],
@@ -314,6 +323,7 @@ class ContentManager:
         url: str,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Turn a text range into a hyperlink."""
         require_non_empty(url, "url")
@@ -323,6 +333,7 @@ class ContentManager:
             end_index,
             TextStyle(link_url=url),
             segment_id=segment_id,
+            tab_id=tab_id,
         )
 
     def create_named_range(
@@ -333,10 +344,11 @@ class ContentManager:
         end_index: int,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Create a named range over a UTF-16 span."""
         require_non_empty(name, "name")
-        rng = TextRange(start_index, end_index, segment_id).to_api()
+        rng = TextRange(start_index, end_index, segment_id, tab_id).to_api()
         return self._documents.batch_update(
             document_id,
             [{"createNamedRange": {"name": name, "range": rng}}],
@@ -370,12 +382,15 @@ class ContentManager:
         style: TextStyle,
         *,
         segment_id: str | None = None,
+        tab_id: str | None = None,
     ) -> BatchUpdateResult:
         """Insert text and immediately apply styling to the inserted span."""
         end = offset_utf16(index, text)
         location: dict[str, Any] = {"index": index}
         if segment_id:
             location["segmentId"] = segment_id
+        if tab_id:
+            location["tabId"] = tab_id
         text_style, fields = style.to_api()
         if not fields:
             raise ValidationError("style has no fields to update")
@@ -383,7 +398,7 @@ class ContentManager:
             {"insertText": {"location": location, "text": text}},
             {
                 "updateTextStyle": {
-                    "range": TextRange(index, end, segment_id).to_api(),
+                    "range": TextRange(index, end, segment_id, tab_id).to_api(),
                     "textStyle": text_style,
                     "fields": fields,
                 }
