@@ -57,6 +57,31 @@ Factory methods accept `profile=ScopeProfile.READWRITE` (default), optional `sco
 
 Default **READWRITE** scopes authorize **events + calendars + freebusy** together (see [Scopes](#scopes)).
 
+### Optional shortcuts vs managers
+
+Both appear after `calendar.` (typed as `CalendarAPI`).
+
+| Shortcut | Delegates to |
+| -------- | ------------ |
+| `list_events(...)` | `events.list(...)` |
+| `create_event(..., summary=, start=, end=)` | `events.create(...)` |
+| `get_event(calendar_id, event_id)` | `events.get(...)` |
+| `delete_event(calendar_id, event_id)` | `events.delete(...)` |
+
+```python
+from datetime import UTC, datetime, timedelta
+
+start = datetime.now(UTC)
+end = start + timedelta(hours=1)
+
+# Manager
+event = calendar.events.create("primary", summary="Standup", start=start, end=end)
+# Shortcut (equivalent)
+event = calendar.create_event("primary", summary="Standup", start=start, end=end)
+
+page = calendar.list_events("primary", time_min=start)  # or calendar.events.list(...)
+```
+
 ---
 
 ## Timezones and datetimes
