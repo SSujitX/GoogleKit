@@ -6,6 +6,8 @@ on:
     paths:
       - "docs/**"
       - "mkdocs.yml"
+      - "pyproject.toml"
+      - "uv.lock"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -30,6 +32,8 @@ jobs:
       - name: Sync docs deps
         run: uv sync --group dev
       - name: Build MkDocs
+        env:
+          GOOGLEKIT_SOCIAL_CARDS: "true"
         run: uv run mkdocs build --strict
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
