@@ -186,8 +186,14 @@ def _resolve_scopes(
         return scopes
     if scopes is not None:
         return ScopeSet.from_iterable(scopes)
-    svc = services or ["gdrive", "gsheets", "gcalendar", "gdocs", "gslides"]
-    return aggregate_scopes(*(preset_for(s, profile) for s in svc))
+    if not services:
+        from googlekit.core.exceptions import ConfigurationError
+
+        raise ConfigurationError(
+            "Pass services=[...] (e.g. services=['gdrive']) or an explicit scopes=... "
+            "argument. GoogleKit does not request all Workspace scopes by default."
+        )
+    return aggregate_scopes(*(preset_for(s, profile) for s in services))
 
 
 def _primary_extra(services: list[str] | None) -> str:
