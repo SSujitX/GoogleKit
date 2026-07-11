@@ -78,6 +78,11 @@ client = GoogleKit.from_oauth(
 
 ## Insufficient scopes
 
-When a method needs a scope not granted, GoogleKit raises `InsufficientScopesError`
-with the required scope(s) and a reauthorize hint. OAuth tokens are scope-bound;
-adding a service after the first authorization typically requires a new consent flow.
+Some cross-service helpers (Docs/Slides export and share via Drive) check scopes
+locally and raise `InsufficientScopesError` with a reauthorize hint.
+
+Most other API methods rely on Google to reject unauthorized calls (typically HTTP
+403). Prefer requesting the correct [scope presets](#profiles) up front; OAuth tokens
+are scope-bound, and installed apps do not support incremental authorization — expanding
+scopes requires a fresh browser consent flow.
+
