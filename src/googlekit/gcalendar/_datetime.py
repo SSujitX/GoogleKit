@@ -97,6 +97,11 @@ def event_time_body(
     if inferred_all_day:
         start_d = start.date() if isinstance(start, datetime) else start
         end_d = end.date() if isinstance(end, datetime) else end
+        # Calendar API: end.date is exclusive. A one-day event needs end = start + 1 day.
+        if end_d <= start_d:
+            raise ValidationError(
+                "All-day end.date is exclusive; for a one-day event use end = start + 1 day"
+            )
         return {"date": date_to_api(start_d)}, {"date": date_to_api(end_d)}
 
     if not isinstance(start, datetime) or not isinstance(end, datetime):
