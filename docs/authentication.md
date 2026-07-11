@@ -35,7 +35,7 @@ from googlekit.auth.scopes import ScopeProfile
 
 client = GoogleKit.from_oauth(
     client_secrets="client_secrets.json",
-    token_path=None,  # OS user config dir by default
+    token_path=None,  # defaults to ./token.json in the working directory
     services=["gdrive", "gsheets"],
     profile=ScopeProfile.READWRITE,
 )
@@ -43,7 +43,7 @@ client = GoogleKit.from_oauth(
 
 - Tokens refresh automatically when possible
 - Expanding scopes beyond what the cached token was granted requires a new browser consent flow (installed apps do not support incremental authorization)
-- Default token path is under the user config directory (`FileTokenStore`), never inside the package install
+- Default token path is under the **current working directory** (`./token.json`) via `FileTokenStore`; pass `token_path=` to override, or use `user_config_token_path()` for `%APPDATA%` / XDG
 - Token files are written atomically with restrictive permissions when the OS supports them
 
 **Cloud Console setup (summary):**
