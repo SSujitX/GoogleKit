@@ -30,11 +30,14 @@ class OverwritePolicy(StrEnum):
 
 
 class PermissionRole(StrEnum):
-    """Roles accepted by sharing helpers."""
+    """Roles accepted by sharing helpers (Drive Permission resource)."""
 
-    READER = "reader"
-    COMMENTER = "commenter"
+    OWNER = "owner"
+    ORGANIZER = "organizer"
+    FILE_ORGANIZER = "fileOrganizer"
     WRITER = "writer"
+    COMMENTER = "commenter"
+    READER = "reader"
 
 
 @dataclass(slots=True)

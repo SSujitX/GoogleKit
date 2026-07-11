@@ -121,6 +121,27 @@ class PermissionsManager:
         }
         return self._create_permission(file_id, body=body, send_notification=False)
 
+    def share_domain(
+        self,
+        file_id: str,
+        domain: str,
+        *,
+        role: PermissionRole | str = PermissionRole.READER,
+        allow_file_discovery: bool = False,
+    ) -> Permission:
+        """Share with everyone in a Google Workspace domain."""
+        require_non_empty(domain, "domain")
+        return self._create_permission(
+            file_id,
+            body={
+                "type": "domain",
+                "role": self._role(role),
+                "domain": domain,
+                "allowFileDiscovery": allow_file_discovery,
+            },
+            send_notification=False,
+        )
+
     def change_role(
         self,
         file_id: str,
@@ -205,11 +226,13 @@ class PermissionsManager:
             "fileId": file_id,
             "body": body,
             "fields": PERMISSION_FIELDS,
-            "sendNotificationEmail": send_notification,
             **self._sd,
         }
-        if email_message and send_notification:
-            kwargs["emailMessage"] = email_message
+        # sendNotificationEmail is only valid for user/group permissions.
+        if body.get("type") in {"user", "group"}:
+            kwargs["sendNotificationEmail"] = send_notification
+            if email_message and send_notification:
+                kwargs["emailMessage"] = email_message
         response = self._transport.execute(self._service().permissions().create(**kwargs))
         logger.debug(
             "Created permission %s on %s (type=%s role=%s)",
