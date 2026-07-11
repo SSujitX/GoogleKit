@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from importlib.metadata import PackageNotFoundError, version
+from googlekit.core.constants import package_version
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -20,11 +20,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.version or args.command is None:
-        try:
-            ver = version("googlekit")
-        except PackageNotFoundError:
-            ver = "0.1.0"
-        print(f"googlekit {ver}")
+        print(f"googlekit {package_version()}")
         if args.command is None and not args.version:
             parser.print_help()
         return 0
