@@ -10,14 +10,14 @@ TOKEN_PATH = "token.json"
 
 
 def main() -> None:
-    kit = GoogleKit.from_oauth(
+    client = GoogleKit.from_oauth(
         client_secrets=CLIENT_SECRETS,
         token_path=TOKEN_PATH,
         services=["gdrive"],
     )
     # First run opens a browser for consent; later runs refresh the cached token.
-    print("Authenticated scopes:", sorted(kit.scopes.values))
-    print("Drive client ready:", kit.drive is not None)
+    print("Authenticated scopes:", sorted(client.scopes.values))
+    print("Drive client ready:", client.drive is not None)
 
 
 if __name__ == "__main__":
