@@ -1,8 +1,21 @@
+---
+title: Google Docs API Python client (GoogleKit)
+description: >-
+  Create and edit Google Docs with GoogleKit — insert text, tables, batch updates,
+  UTF-16-safe indexes, and Drive export/share for Docs API v1.
+---
+
 # Google Docs
 
 Install: `uv add googlekit`
 
-Enable the **Google Docs API** in Google Cloud Console. Export and sharing go through the Drive API — install the `gdrive` extra and request Drive scopes yourself; GoogleKit never adds them silently.
+Enable the **Google Docs API** in Google Cloud Console. Export and sharing go through the Drive API — request Drive scopes yourself when needed; GoogleKit never adds them silently.
+
+**Official Google docs:** [Docs API guides](https://developers.google.com/workspace/docs/api/how-tos/overview) ·
+[REST reference](https://developers.google.com/workspace/docs/api/reference/rest) ·
+[documents](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents) ·
+[Structure](https://developers.google.com/workspace/docs/api/concepts/structure) ·
+[Enable API](https://console.cloud.google.com/apis/library/docs.googleapis.com)
 
 ## Client
 
