@@ -1,7 +1,7 @@
 """Create a Google Doc and insert styled text.
 
 Requires:
-    uv add "googlekit[gdocs]"
+    uv add googlekit
 
 Auth: place client_secrets.json in the working directory or set paths below.
 """
