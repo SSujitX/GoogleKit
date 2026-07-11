@@ -101,11 +101,13 @@ class Transport:
         from googleapiclient.discovery import build
 
         creds = self.credentials()
+        # google-api-python-client v2+ ships static discovery documents.
+        # Use the library default (static_discovery=True); do not disable
+        # discovery caching — that is a v1-era pattern.
         service = build(
             api,
             api_version,
             credentials=creds,
-            cache_discovery=False,
         )
         # Attach a descriptive user-agent via http when available.
         http = getattr(service, "_http", None)
