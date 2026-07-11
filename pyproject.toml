@@ -29,7 +29,12 @@ classifiers = [
     "Typing :: Typed",
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "google-api-python-client>=2.198.0",
+    "google-auth>=2.55.2",
+    "google-auth-oauthlib>=1.4.0",
+    "google-auth-httplib2>=0.4.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/SSujitX/GoogleKit"
@@ -40,44 +45,6 @@ Changelog = "https://github.com/SSujitX/GoogleKit/blob/main/RELEASE.md"
 
 [project.scripts]
 googlekit = "googlekit.__main__:main"
-
-[project.optional-dependencies]
-gdrive = [
-    "google-api-python-client>=2.198.0",
-    "google-auth>=2.55.2",
-    "google-auth-oauthlib>=1.4.0",
-    "google-auth-httplib2>=0.4.0",
-]
-gsheets = [
-    "google-api-python-client>=2.198.0",
-    "google-auth>=2.55.2",
-    "google-auth-oauthlib>=1.4.0",
-    "google-auth-httplib2>=0.4.0",
-]
-gcalendar = [
-    "google-api-python-client>=2.198.0",
-    "google-auth>=2.55.2",
-    "google-auth-oauthlib>=1.4.0",
-    "google-auth-httplib2>=0.4.0",
-]
-gdocs = [
-    "google-api-python-client>=2.198.0",
-    "google-auth>=2.55.2",
-    "google-auth-oauthlib>=1.4.0",
-    "google-auth-httplib2>=0.4.0",
-]
-gslides = [
-    "google-api-python-client>=2.198.0",
-    "google-auth>=2.55.2",
-    "google-auth-oauthlib>=1.4.0",
-    "google-auth-httplib2>=0.4.0",
-]
-all = [
-    "google-api-python-client>=2.198.0",
-    "google-auth>=2.55.2",
-    "google-auth-oauthlib>=1.4.0",
-    "google-auth-httplib2>=0.4.0",
-]
 
 [dependency-groups]
 dev = [
