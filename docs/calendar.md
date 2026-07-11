@@ -1,3 +1,10 @@
+---
+title: Google Calendar API Python client (GoogleKit)
+description: >-
+  Create and manage Google Calendar events with GoogleKit — Meet links, free/busy,
+  sync tokens, attendees, and RSVP via Calendar API v3.
+---
+
 # Google Calendar
 
 Install:
@@ -7,6 +14,12 @@ uv add googlekit
 ```
 
 Enable the **Google Calendar API** in Google Cloud Console.
+
+**Official Google docs:** [Calendar API guides](https://developers.google.com/workspace/calendar/api/guides/overview) ·
+[REST reference](https://developers.google.com/workspace/calendar/api/v3/reference) ·
+[Events](https://developers.google.com/workspace/calendar/api/v3/reference/events) ·
+[Freebusy](https://developers.google.com/workspace/calendar/api/v3/reference/freebusy) ·
+[Enable API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
 
 ## Client
 
