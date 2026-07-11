@@ -16,6 +16,8 @@ def test_public_exceptions_exported() -> None:
     assert issubclass(MissingExtraError, Exception)
     assert hasattr(googlekit, "AuthenticationError")
     assert hasattr(googlekit, "ValidationError")
+    assert hasattr(googlekit, "ClientConfig")
+    assert hasattr(googlekit, "RetryPolicy")
 
 
 def test_core_imports_without_service_modules() -> None:
