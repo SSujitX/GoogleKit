@@ -1,9 +1,9 @@
 site_name: GoogleKit
-site_description: Unofficial Python SDK for Google Drive, Sheets, Calendar, Docs, and Slides
+site_description: Unofficial Python SDK for Google Drive API, Google Sheets API, Google Calendar API, Google Docs API, and Google Slides API
 site_url: https://ssujitx.github.io/GoogleKit/
 repo_url: https://github.com/SSujitX/GoogleKit
 repo_name: SSujitX/GoogleKit
-edit_uri: edit/main/docs/
+edit_uri: edit/master/docs/
 
 theme:
   name: material
