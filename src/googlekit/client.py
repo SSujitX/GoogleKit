@@ -12,6 +12,13 @@ from googlekit.auth.scopes import ScopeProfile, ScopeSet, aggregate_scopes, pres
 from googlekit.auth.service_account import ServiceAccountCredentialProvider
 from googlekit.core.configuration import ClientConfig
 from googlekit.core.protocols import CredentialProvider
+from googlekit.core.service_apis import (
+    CalendarAPI,
+    DocsAPI,
+    DriveAPI,
+    SheetsAPI,
+    SlidesAPI,
+)
 
 if TYPE_CHECKING:
     from googlekit.gcalendar.client import CalendarClient
@@ -24,8 +31,23 @@ if TYPE_CHECKING:
 class GoogleKit:
     """Unified entry point for Drive, Sheets, Calendar, Docs, and Slides.
 
-    Services are initialized lazily on first access so importing GoogleKit does
-    not pull in every Google API client.
+    Prefer factory methods (``from_oauth``, ``from_service_account``, ``from_adc``,
+    ``auto``). Always pass ``services=[...]`` or explicit ``scopes=`` — GoogleKit
+    never requests all Workspace scopes by default.
+
+    Services load lazily on first access (``client.drive``, ``client.sheets``, …).
+
+    Example::
+
+        from googlekit import GoogleKit, ClientConfig, ScopeProfile
+
+        client = GoogleKit.auto(
+            services=["gdrive", "gsheets"],
+            profile=ScopeProfile.READWRITE,
+            config=ClientConfig(retry=5),
+        )
+        for f in client.drive.files.list(folder_id="root").items:
+            print(f.name)
     """
 
     def __init__(
@@ -55,7 +77,17 @@ class GoogleKit:
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
     ) -> GoogleKit:
-        """Create a client using desktop OAuth client secrets."""
+        """Create a client with a **Desktop** OAuth client-secrets JSON.
+
+        Args:
+            client_secrets: Path to downloaded OAuth client JSON (``installed`` type).
+            token_path: Where to cache the user token. Default: ``./token.json``.
+            scopes: Explicit scopes, or omit and use ``services`` + ``profile``.
+            services: e.g. ``["gdrive", "gsheets"]``. Required unless ``scopes`` is set.
+            profile: Least-privilege preset (default ``READWRITE``). For Drive, that is
+                ``drive.file`` (app files only) — use ``FULL`` / ``READONLY`` to list all Drive.
+            config: Timeouts, retries, timezone, Shared Drive flags, etc.
+        """
         scope_set = _resolve_scopes(scopes, services, profile)
         provider = OAuthCredentialProvider(
             client_secrets,
@@ -76,7 +108,12 @@ class GoogleKit:
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
     ) -> GoogleKit:
-        """Create a client using a service-account JSON key."""
+        """Create a client from a service-account JSON key.
+
+        Ordinary service accounts do not see a user's personal Drive unless files are
+        shared with the SA email, or you set ``subject`` for Workspace domain-wide
+        delegation.
+        """
         scope_set = _resolve_scopes(scopes, services, profile)
         provider = ServiceAccountCredentialProvider(
             credentials_file,
@@ -96,7 +133,10 @@ class GoogleKit:
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
     ) -> GoogleKit:
-        """Create a client using Application Default Credentials."""
+        """Create a client using Application Default Credentials.
+
+        Typical local setup: ``gcloud auth application-default login``.
+        """
         scope_set = _resolve_scopes(scopes, services, profile)
         provider = ADCCredentialProvider(
             scopes=scope_set,
@@ -112,8 +152,16 @@ class GoogleKit:
         services: list[str] | None = None,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
+        token_path: str | Path | None = None,
     ) -> GoogleKit:
-        """Auto-detect ADC or local credential files (PyDrive4-style)."""
+        """Auto-detect credentials: ADC → service-account JSON → OAuth client JSON.
+
+        Looks in the current working directory for common filenames
+        (``service_account.json``, ``client_secrets.json``, …).
+
+        When OAuth is used, tokens default to ``./token.json`` unless ``token_path``
+        is set. ``services`` (or scopes via other factories) is required.
+        """
         scope_set = _resolve_scopes(None, services, profile)
         provider = build_provider(
             method="auto",
@@ -121,23 +169,28 @@ class GoogleKit:
             services=services,
             profile=profile,
             extra=_primary_extra(services),
+            token_path=token_path,
         )
         return cls(provider, config=config, scopes=scope_set)
 
     @property
     def provider(self) -> CredentialProvider:
+        """Underlying credential provider (advanced / cross-client reuse)."""
         return self._provider
 
     @property
     def config(self) -> ClientConfig:
+        """Runtime config (timeout, retry, timezone, Shared Drives, …)."""
         return self._config
 
     @property
     def scopes(self) -> ScopeSet:
+        """OAuth scopes this client was constructed with."""
         return self._scopes
 
     @property
-    def drive(self) -> DriveClient:
+    def drive(self) -> DriveAPI:
+        """Google Drive API — ``files``, ``folders``, ``permissions``, ``changes``."""
         if self._drive is None:
             from googlekit.gdrive.client import DriveClient
 
@@ -145,7 +198,8 @@ class GoogleKit:
         return self._drive
 
     @property
-    def sheets(self) -> SheetsClient:
+    def sheets(self) -> SheetsAPI:
+        """Google Sheets API — ``spreadsheets``, ``values``, ``worksheets``, ``formatting``."""
         if self._sheets is None:
             from googlekit.gsheets.client import SheetsClient
 
@@ -153,7 +207,8 @@ class GoogleKit:
         return self._sheets
 
     @property
-    def calendar(self) -> CalendarClient:
+    def calendar(self) -> CalendarAPI:
+        """Google Calendar API — ``calendars``, ``events``, ``freebusy``."""
         if self._calendar is None:
             from googlekit.gcalendar.client import CalendarClient
 
@@ -161,7 +216,8 @@ class GoogleKit:
         return self._calendar
 
     @property
-    def docs(self) -> DocsClient:
+    def docs(self) -> DocsAPI:
+        """Google Docs API — ``documents``, ``content``, ``tables``, ``images``."""
         if self._docs is None:
             from googlekit.gdocs.client import DocsClient
 
@@ -169,7 +225,8 @@ class GoogleKit:
         return self._docs
 
     @property
-    def slides(self) -> SlidesClient:
+    def slides(self) -> SlidesAPI:
+        """Google Slides API — ``presentations``, ``pages``, ``elements``, ``text``, ``images``, ``tables``."""
         if self._slides is None:
             from googlekit.gslides.client import SlidesClient
 
@@ -215,5 +272,5 @@ def _primary_extra(services: list[str] | None) -> str:
 
 
 def share_provider(client: GoogleKit) -> CredentialProvider:
-    """Return the shared credential provider for cross-service reuse."""
+    """Return the shared credential provider for building another service client."""
     return client.provider
