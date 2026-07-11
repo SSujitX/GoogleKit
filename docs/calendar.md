@@ -354,11 +354,18 @@ calendar.events.patch(
     send_updates=SendUpdates.NONE,
 )
 
-# RSVP: response_status requires attendees including self
+# RSVP: mark the authenticated attendee with self=True locally
+# (Calendar treats attendees[].self as read-only — GoogleKit uses it
+# only to identify who to update, then sends email + responseStatus).
+from googlekit.gcalendar.models import Attendee
+
 calendar.events.patch(
     "primary",
     event.id,
-    attendees=["me@example.com"],
+    attendees=[
+        Attendee(email="me@example.com", self=True),
+        Attendee(email="guest@example.com"),
+    ],
     response_status="accepted",
 )
 ```
@@ -519,7 +526,7 @@ calendar.calendars.update(cal.id, summary="On-call (legacy)")
 - **`order_by="startTime"`**: only with `single_events=True` (default).
 - **`SendUpdates` default `none`**: set `ALL` when you intentionally notify guests.
 - **Meet**: `conference=True` requires write access; link is on `event.hangout_link` after create/update/patch.
-- **`patch` + `response_status`**: must pass `attendees` (including self) or validation fails.
+- **`patch` + `response_status`**: pass `attendees` with one entry marked `self=True` (local flag only). GoogleKit sets `attendeesOmitted` on the event body and does **not** send read-only `self`/`organizer` fields.
 - **Primary calendar**: cannot `calendars.delete("primary")`.
 - **Windows timezones**: install `tzdata` for IANA `ZoneInfo` names.
 - **Scopes**: events-only scopes are not enough for calendar list CRUD + freebusy; use the presets below.
