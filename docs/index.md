@@ -34,7 +34,7 @@ description: >-
 - One consistent Python API across five Google Workspace products
 - **Managers** (full control) plus optional **shortcuts** (flat helpers) — both autocomplete after `client.drive.`
 - Google client libraries included by default (`uv add googlekit` / `pip install googlekit`)
-- OAuth 2.0 desktop, service accounts, and Application Default Credentials (ADC)
+- OAuth 2.0 desktop, service accounts, Application Default Credentials (ADC), and dedicated `auto()` discovery
 - Least-privilege scope presets per service
 - Retries, lazy pagination, typed exceptions, and `py.typed` support
 
