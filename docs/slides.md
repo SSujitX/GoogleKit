@@ -1,6 +1,6 @@
 # Google Slides
 
-Install: `uv add "googlekit[gslides]"`
+Install: `uv add googlekit`
 
 Enable the **Google Slides API**. Export/share may need Drive.
 
