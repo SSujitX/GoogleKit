@@ -1,6 +1,6 @@
 # Google Docs
 
-Install: `uv add "googlekit[gdocs]"`
+Install: `uv add googlekit`
 
 Enable the **Google Docs API**. Export and sharing typically also need the **Drive API**.
 
