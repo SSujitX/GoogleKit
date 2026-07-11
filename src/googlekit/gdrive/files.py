@@ -227,6 +227,17 @@ class FilesManager(FileMediaMixin):
         """Restore a file from trash."""
         return self.update_metadata(file_id, trashed=False, fields=fields)
 
+    def empty_trash(self, *, drive_id: str | None = None) -> None:
+        """Permanently delete all of the authenticated user's trashed files.
+
+        Requires the full ``drive`` scope. Pass ``drive_id`` to empty trash
+        for a shared drive (``files.emptyTrash``).
+        """
+        kwargs: dict[str, Any] = {**self._sd}
+        if drive_id:
+            kwargs["driveId"] = drive_id
+        self._transport.execute(self._service().files().emptyTrash(**kwargs))
+
     def delete(self, file_id: str) -> None:
         """Permanently delete a file (cannot be undone)."""
         require_non_empty(file_id, "file_id")
@@ -288,10 +299,14 @@ class FilesManager(FileMediaMixin):
             kwargs["pageToken"] = page_token
         if order_by:
             kwargs["orderBy"] = order_by
-        if corpora:
-            kwargs["corpora"] = corpora
+        # Shared-drive list rules: driveId requires corpora=drive (and vice versa).
         if drive_id:
             kwargs["driveId"] = drive_id
+            kwargs["corpora"] = corpora or "drive"
+        elif corpora:
+            if corpora == "drive":
+                raise ValidationError("corpora='drive' requires drive_id")
+            kwargs["corpora"] = corpora
         response = self._transport.execute(self._service().files().list(**kwargs))
         items = [DriveFile.from_api(f) for f in response.get("files", [])]
         return Page(
