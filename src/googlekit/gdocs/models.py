@@ -182,6 +182,17 @@ class StructuralElement:
 
 
 @dataclass(slots=True)
+class DocumentTab:
+    """One tab in a multi-tab Google Doc."""
+
+    tab_id: str
+    title: str | None = None
+    structural_elements: list[StructuralElement] = field(default_factory=list)
+    body_end_index: int | None = None
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+
+
+@dataclass(slots=True)
 class Document:
     """Google Docs document metadata and body structure."""
 
@@ -191,15 +202,21 @@ class Document:
     body_end_index: int | None = None
     structural_elements: list[StructuralElement] = field(default_factory=list)
     named_ranges: dict[str, list[TextRange]] = field(default_factory=dict)
+    tabs: list[DocumentTab] = field(default_factory=list)
     raw: dict[str, Any] = field(default_factory=dict, repr=False)
 
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> Document:
+        tabs = _parse_tabs(data.get("tabs") or [])
         body = data.get("body") or {}
         elements = [StructuralElement.from_api(el) for el in body.get("content") or []]
         end_index: int | None = None
         if elements and elements[-1].end_index is not None:
             end_index = elements[-1].end_index
+        # Multi-tab docs: prefer first tab body when legacy top-level body is empty.
+        if not elements and tabs:
+            elements = list(tabs[0].structural_elements)
+            end_index = tabs[0].body_end_index
 
         named: dict[str, list[TextRange]] = {}
         for name, nr in (data.get("namedRanges") or {}).items():
@@ -211,6 +228,7 @@ class Document:
                             start_index=int(r.get("startIndex", 0)),
                             end_index=int(r.get("endIndex", 0)),
                             segment_id=r.get("segmentId"),
+                            tab_id=r.get("tabId"),
                         )
                     )
             named[name] = ranges
@@ -222,6 +240,7 @@ class Document:
             body_end_index=end_index,
             structural_elements=elements,
             named_ranges=named,
+            tabs=tabs,
             raw=data,
         )
 
@@ -233,6 +252,28 @@ class Document:
             if el.text is not None:
                 parts.append(el.text)
         return "".join(parts)
+
+
+def _parse_tabs(raw_tabs: list[dict[str, Any]]) -> list[DocumentTab]:
+    result: list[DocumentTab] = []
+    for tab in raw_tabs:
+        props = tab.get("tabProperties") or {}
+        doc_tab = tab.get("documentTab") or {}
+        body = doc_tab.get("body") or {}
+        elements = [StructuralElement.from_api(el) for el in body.get("content") or []]
+        end_index = elements[-1].end_index if elements and elements[-1].end_index is not None else None
+        result.append(
+            DocumentTab(
+                tab_id=str(props.get("tabId") or tab.get("tabId") or ""),
+                title=props.get("title"),
+                structural_elements=elements,
+                body_end_index=end_index,
+                raw=tab,
+            )
+        )
+        # Nested child tabs (Google Docs tab hierarchy).
+        result.extend(_parse_tabs(tab.get("childTabs") or []))
+    return result
 
 
 @dataclass(slots=True)
