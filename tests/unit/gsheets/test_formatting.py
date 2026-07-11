@@ -50,6 +50,42 @@ def test_merge_and_column_widths() -> None:
     assert dim["range"]["dimension"] == "COLUMNS"
 
 
+def test_number_format_type() -> None:
+    service = MagicMock()
+    batch_req = MagicMock()
+    batch_req.execute.return_value = {"spreadsheetId": "s", "replies": [{}]}
+    service.spreadsheets.return_value.batchUpdate.return_value = batch_req
+    transport = MagicMock()
+    transport.config = ClientConfig(retry=RetryPolicy(enabled=False, max_attempts=1))
+    transport.get_service.return_value = service
+    transport.execute.side_effect = lambda request, **kw: request.execute()
+    mgr = FormattingManager(transport)
+    mgr.number("s", 0, 0, 1, 0, 1, "yyyy-mm-dd", number_format_type="DATE")
+    body = service.spreadsheets.return_value.batchUpdate.call_args.kwargs["body"]
+    nf = body["requests"][0]["repeatCell"]["cell"]["userEnteredFormat"]["numberFormat"]
+    assert nf == {"type": "DATE", "pattern": "yyyy-mm-dd"}
+
+
+def test_borders_use_color_style() -> None:
+    service = MagicMock()
+    batch_req = MagicMock()
+    batch_req.execute.return_value = {"spreadsheetId": "s", "replies": [{}]}
+    service.spreadsheets.return_value.batchUpdate.return_value = batch_req
+    transport = MagicMock()
+    transport.config = ClientConfig(retry=RetryPolicy(enabled=False, max_attempts=1))
+    transport.get_service.return_value = service
+    transport.execute.side_effect = lambda request, **kw: request.execute()
+    mgr = FormattingManager(transport)
+    mgr.borders("s", 0, 0, 1, 0, 1, color={"red": 1.0})
+    border = service.spreadsheets.return_value.batchUpdate.call_args.kwargs["body"]["requests"][0][
+        "updateBorders"
+    ]["top"]
+    assert border["style"] == "SOLID"
+    assert border["colorStyle"] == {"rgbColor": {"red": 1.0}}
+    assert "width" not in border
+    assert "color" not in border
+
+
 def test_invalid_grid_range() -> None:
     transport = MagicMock()
     transport.config = ClientConfig()
