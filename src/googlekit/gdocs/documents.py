@@ -111,7 +111,7 @@ class DocumentsManager:
             A Drive ``DownloadResult``.
 
         Raises:
-            MissingExtraError: When ``googlekit[gdrive]`` is not installed.
+            MissingExtraError: When Google client libraries are missing.
             InsufficientScopesError: When credentials lack Drive scopes.
         """
         did = require_non_empty(document_id, "document_id")
@@ -151,7 +151,7 @@ class DocumentsManager:
             A Drive ``Permission`` (or raw dict).
 
         Raises:
-            MissingExtraError: When ``googlekit[gdrive]`` is not installed.
+            MissingExtraError: When Google client libraries are missing.
             InsufficientScopesError: When credentials lack Drive write scopes.
         """
         did = require_non_empty(document_id, "document_id")
