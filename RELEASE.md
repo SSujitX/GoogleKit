@@ -1,31 +1,27 @@
-# Changelog
+## [0.0.1] - 2026-07-12
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-### Changed
-
-- Google API client libraries are now default dependencies (`uv add googlekit`); service extras removed
-- Unified `GoogleKit` constructors require explicit `services=` or `scopes=` (no all-service default)
-- OAuth cached tokens are accepted only when their granted scopes cover the request (no fake scope expansion)
-- HTTP timeout / authorized httplib2 transport; retry TransportError and 403 rate-limit reasons
-- Drive folder upload/download overwrite safety; Docs `includeTabsContent` + tab parsing
-- Calendar `response_status` applies only to `self=True` attendees with `attendeesOmitted`
+First public release of **GoogleKit** — an unofficial Python SDK for Google Drive, Sheets, Calendar, Docs, and Slides.
 
 ### Added
 
-- Core package: exceptions, retries, pagination, transport, client-library checks
-- Authentication: OAuth desktop, service account, ADC, scope presets, token stores
-- Unified `GoogleKit` client with lazy service accessors
-- Minimal CLI (`googlekit --version`, `doctor`, `auth status`)
-- Documentation, examples, CI, and packaging tests
+- Core runtime: typed exceptions, retries, pagination, HTTP transport, client-library checks
+- Authentication: OAuth 2.0 desktop flow, service accounts, Application Default Credentials (ADC), auto-detect
+- Scope presets (`metadata` / `readonly` / `readwrite` / `full`) and `ScopeSet` aggregation
+- Atomic token file writes with restrictive permissions when the OS supports them
+- Unified `GoogleKit` client with lazy `drive` / `sheets` / `calendar` / `docs` / `slides` accessors
+- Per-service clients: `DriveClient`, `SheetsClient`, `CalendarClient`, `DocsClient`, `SlidesClient`
+- **Drive** — files, folders, permissions, changes, upload/download, native export, Shared Drives
+- **Sheets** — spreadsheets, values (A1), worksheets, formatting helpers
+- **Calendar** — calendars, events, Meet links, free/busy, sync tokens, attendee RSVP (`response_status`)
+- **Docs** — documents, content/tables, UTF-16-safe indexes, tab-aware get (`includeTabsContent`)
+- **Slides** — presentations, pages, shapes, images, tables, template text replace
+- Configurable HTTP timeout and custom User-Agent on authorized requests
+- Retries for transport failures and rate limits (including selected 403 rate-limit reasons)
+- Minimal CLI: `googlekit --version`, `doctor`, `auth status`
+- Docs site (MkDocs), examples, unit tests, CI, and PyPI publish workflow
 
-## [0.1.0] - 2026-07-11
+### Notes
 
-### Added
-
-- Initial public release scaffolding for GoogleKit
+- Install: `pip install googlekit` or `uv add googlekit` (Google API client libraries included by default)
+- Unified constructors require explicit `services=` or `scopes=` (no all-Workspace default)
+- Not affiliated with Google LLC
