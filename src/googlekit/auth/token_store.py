@@ -33,8 +33,11 @@ class FileTokenStore:
         )
         tmp_path = Path(tmp_name)
         try:
-            with contextlib.suppress(OSError):
-                os.fchmod(fd, stat.S_IRUSR | stat.S_IWUSR)
+            # fchmod is POSIX-only; Windows has no os.fchmod.
+            fchmod = getattr(os, "fchmod", None)
+            if fchmod is not None:
+                with contextlib.suppress(OSError):
+                    fchmod(fd, stat.S_IRUSR | stat.S_IWUSR)
             with os.fdopen(fd, "wb") as handle:
                 handle.write(data)
                 handle.flush()
