@@ -8,7 +8,7 @@ for Google Workspace APIs. It is not affiliated with Google.
 Use [uv](https://docs.astral.sh/uv/) exclusively:
 
 ```bash
-uv sync --all-extras --group dev
+uv sync --group dev
 uv run pytest -m "not integration"
 uv build
 ```
@@ -21,7 +21,7 @@ supported by current dependencies (see `.python-version`).
 - `src/googlekit/` — library code (`auth`, `core`, and service packages)
 - `tests/unit/` — mocked unit tests (no network)
 - `tests/integration/` — live API tests (skipped by default)
-- `tests/packaging/` — install / wheel / extras checks
+- `tests/packaging/` — install / wheel checks
 - `docs/` — MkDocs documentation
 - `examples/` — short runnable samples with placeholder IDs
 
@@ -30,7 +30,7 @@ supported by current dependencies (see `.python-version`).
 - Prefer small, focused modules and typed public APIs
 - Do not log secrets (tokens, client secrets, private keys)
 - Never commit credential or token files
-- Keep service extras optional; raise `MissingExtraError` with a `uv add` hint
+- Raise actionable errors (`MissingExtraError` suggests `uv add googlekit` if clients are missing)
 - Unit tests must not hit the network; inject sleep for retry tests
 
 ## Pull requests
