@@ -96,7 +96,7 @@ class PresentationsManager:
             A Drive ``DownloadResult``.
 
         Raises:
-            MissingExtraError: When ``googlekit[gdrive]`` is not installed.
+            MissingExtraError: When Google client libraries are missing.
             InsufficientScopesError: When credentials lack Drive scopes.
         """
         pid = require_non_empty(presentation_id, "presentation_id")
@@ -136,7 +136,7 @@ class PresentationsManager:
             A Drive ``Permission`` (or raw dict).
 
         Raises:
-            MissingExtraError: When ``googlekit[gdrive]`` is not installed.
+            MissingExtraError: When Google client libraries are missing.
             InsufficientScopesError: When credentials lack Drive write scopes.
         """
         pid = require_non_empty(presentation_id, "presentation_id")
