@@ -1,20 +1,30 @@
 site_name: GoogleKit
-site_description: Unofficial Python SDK for Google Drive API, Google Sheets API, Google Calendar API, Google Docs API, and Google Slides API
+site_description: >-
+  Unofficial Python SDK for Google Drive API, Google Sheets API, Google Calendar API,
+  Google Docs API, and Google Slides API — OAuth, ADC, scopes, retries, and typed clients.
+site_author: SSujitX
 site_url: https://ssujitx.github.io/GoogleKit/
 repo_url: https://github.com/SSujitX/GoogleKit
 repo_name: SSujitX/GoogleKit
 edit_uri: edit/master/docs/
+copyright: >
+  Copyright &copy; 2026 SSujitX — Unofficial SDK; not affiliated with Google LLC.
+  Official APIs:
+  <a href="https://developers.google.com/workspace" target="_blank" rel="noopener">Google Workspace APIs</a>
 
 theme:
   name: material
+  language: en
   palette:
-    - scheme: default
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: indigo
       accent: indigo
       toggle:
@@ -23,15 +33,33 @@ theme:
   features:
     - navigation.sections
     - navigation.top
+    - navigation.indexes
     - content.code.copy
+    - content.tabs.link
     - search.suggest
+    - search.highlight
+    - toc.follow
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/SSujitX/GoogleKit
+      name: GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/googlekit/
+      name: PyPI
+  generator: false
 
 markdown_extensions:
   - admonition
+  - attr_list
+  - md_in_html
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.highlight:
       anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
   - tables
   - toc:
       permalink: true
@@ -51,4 +79,11 @@ nav:
   - Publishing: publishing.md
 
 plugins:
-  - search
+  - search:
+      lang: en
+  - meta
+  - social:
+      cards: true
+      cards_layout_options:
+        background_color: "#3949AB"
+        color: "#FFFFFF"
