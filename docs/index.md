@@ -64,7 +64,7 @@ Each service page documents **both** styles: [Drive](drive.md) · [Sheets](sheet
 | Page | What it covers |
 | ---- | -------------- |
 | [Installation](installation.md) | `pip` / `uv`, Python versions |
-| [Authentication](authentication.md) | OAuth, ADC, service account, auto-detect, security |
+| [Authentication](authentication.md) | Four methods: ADC, service account, OAuth, auto-detect; security |
 | [Scopes](scopes.md) | Scope presets, aggregation, `InsufficientScopesError` |
 | [Errors](errors.md) | Exception hierarchy and HTTP mapping |
 
