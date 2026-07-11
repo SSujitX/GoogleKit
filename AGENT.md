@@ -57,10 +57,11 @@ Google client libraries are **default** dependencies. There are **no** service e
 
 ### Version
 
-- Single source: `pyproject.toml` → `[project].version`
-- Runtime: `googlekit.__version__` via `importlib.metadata`
+- Single source: `pyproject.toml` → `[project].version` (only place to bump)
+- Runtime: `googlekit.__version__` and `USER_AGENT` read via `importlib.metadata` (`package_version()`)
+- Fallback when not installed: `"dev"` — never hardcode a release version in source
 - Publish tags must be `v` + that version (`v0.0.2` ↔ `0.0.2`)
-- Keep `core/constants.py` `USER_AGENT` in sync with package version when bumping
+- After bumping: `uv sync` (so local env metadata matches) then tag
 
 ### Build / tool
 
