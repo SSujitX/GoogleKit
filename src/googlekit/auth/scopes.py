@@ -11,21 +11,39 @@ class Scope(StrEnum):
     """Well-known Google OAuth scopes used by GoogleKit."""
 
     # Drive
+    # https://developers.google.com/workspace/drive/api/guides/about-auth
     DRIVE = "https://www.googleapis.com/auth/drive"
     DRIVE_READONLY = "https://www.googleapis.com/auth/drive.readonly"
     DRIVE_FILE = "https://www.googleapis.com/auth/drive.file"
     DRIVE_METADATA = "https://www.googleapis.com/auth/drive.metadata"
     DRIVE_METADATA_READONLY = "https://www.googleapis.com/auth/drive.metadata.readonly"
+    DRIVE_APPDATA = "https://www.googleapis.com/auth/drive.appdata"
+    DRIVE_APPFOLDER = "https://www.googleapis.com/auth/drive.appfolder"
+    DRIVE_APPS_READONLY = "https://www.googleapis.com/auth/drive.apps.readonly"
+    DRIVE_MEET_READONLY = "https://www.googleapis.com/auth/drive.meet.readonly"
+    DRIVE_INSTALL = "https://www.googleapis.com/auth/drive.install"
 
     # Sheets
+    # https://developers.google.com/workspace/sheets/api/scopes
     SPREADSHEETS = "https://www.googleapis.com/auth/spreadsheets"
     SPREADSHEETS_READONLY = "https://www.googleapis.com/auth/spreadsheets.readonly"
 
     # Calendar
+    # https://developers.google.com/workspace/calendar/api/auth
     CALENDAR = "https://www.googleapis.com/auth/calendar"
     CALENDAR_READONLY = "https://www.googleapis.com/auth/calendar.readonly"
     CALENDAR_EVENTS = "https://www.googleapis.com/auth/calendar.events"
     CALENDAR_EVENTS_READONLY = "https://www.googleapis.com/auth/calendar.events.readonly"
+    CALENDAR_EVENTS_FREEBUSY = "https://www.googleapis.com/auth/calendar.events.freebusy"
+    CALENDAR_FREEBUSY = "https://www.googleapis.com/auth/calendar.freebusy"
+    CALENDAR_CALENDARS = "https://www.googleapis.com/auth/calendar.calendars"
+    CALENDAR_CALENDARS_READONLY = "https://www.googleapis.com/auth/calendar.calendars.readonly"
+    CALENDAR_CALENDARLIST = "https://www.googleapis.com/auth/calendar.calendarlist"
+    CALENDAR_CALENDARLIST_READONLY = (
+        "https://www.googleapis.com/auth/calendar.calendarlist.readonly"
+    )
+    CALENDAR_APP_CREATED = "https://www.googleapis.com/auth/calendar.app.created"
+    CALENDAR_SETTINGS_READONLY = "https://www.googleapis.com/auth/calendar.settings.readonly"
 
     # Docs
     DOCUMENTS = "https://www.googleapis.com/auth/documents"
@@ -34,6 +52,37 @@ class Scope(StrEnum):
     # Slides
     PRESENTATIONS = "https://www.googleapis.com/auth/presentations"
     PRESENTATIONS_READONLY = "https://www.googleapis.com/auth/presentations.readonly"
+
+
+_DRIVE_NARROW: frozenset[str] = frozenset(
+    {
+        Scope.DRIVE_READONLY,
+        Scope.DRIVE_FILE,
+        Scope.DRIVE_METADATA,
+        Scope.DRIVE_METADATA_READONLY,
+        Scope.DRIVE_APPDATA,
+        Scope.DRIVE_APPFOLDER,
+        Scope.DRIVE_APPS_READONLY,
+        Scope.DRIVE_MEET_READONLY,
+        Scope.DRIVE_INSTALL,
+    }
+)
+
+_CALENDAR_NARROW: frozenset[str] = frozenset(
+    {
+        Scope.CALENDAR_READONLY,
+        Scope.CALENDAR_EVENTS,
+        Scope.CALENDAR_EVENTS_READONLY,
+        Scope.CALENDAR_EVENTS_FREEBUSY,
+        Scope.CALENDAR_FREEBUSY,
+        Scope.CALENDAR_CALENDARS,
+        Scope.CALENDAR_CALENDARS_READONLY,
+        Scope.CALENDAR_CALENDARLIST,
+        Scope.CALENDAR_CALENDARLIST_READONLY,
+        Scope.CALENDAR_APP_CREATED,
+        Scope.CALENDAR_SETTINGS_READONLY,
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,19 +116,11 @@ class ScopeSet:
             if isinstance(required, ScopeSet)
             else frozenset(str(s) for s in required)
         )
-        # Full drive covers narrower drive scopes for practical checks.
+        # Full drive / calendar cover narrower scopes for practical checks.
         if Scope.DRIVE in self.values:
-            needed = frozenset(
-                s
-                for s in needed
-                if s
-                not in {
-                    Scope.DRIVE_READONLY,
-                    Scope.DRIVE_FILE,
-                    Scope.DRIVE_METADATA,
-                    Scope.DRIVE_METADATA_READONLY,
-                }
-            )
+            needed = frozenset(s for s in needed if s not in _DRIVE_NARROW)
+        if Scope.CALENDAR in self.values:
+            needed = frozenset(s for s in needed if s not in _CALENDAR_NARROW)
         return needed <= self.values
 
     def missing(self, required: ScopeSet | Iterable[str | Scope]) -> frozenset[str]:
@@ -125,10 +166,21 @@ SHEETS_PRESETS: dict[ScopeProfile, ScopeSet] = {
     ScopeProfile.FULL: ScopeSet.of(Scope.SPREADSHEETS),
 }
 
+# CalendarClient exposes events + calendars + freebusy; presets must authorize all three.
 CALENDAR_PRESETS: dict[ScopeProfile, ScopeSet] = {
     ScopeProfile.METADATA: ScopeSet.of(Scope.CALENDAR_READONLY),
-    ScopeProfile.READONLY: ScopeSet.of(Scope.CALENDAR_EVENTS_READONLY),
-    ScopeProfile.READWRITE: ScopeSet.of(Scope.CALENDAR_EVENTS),
+    ScopeProfile.READONLY: ScopeSet.of(
+        Scope.CALENDAR_EVENTS_READONLY,
+        Scope.CALENDAR_CALENDARLIST_READONLY,
+        Scope.CALENDAR_CALENDARS_READONLY,
+        Scope.CALENDAR_FREEBUSY,
+    ),
+    ScopeProfile.READWRITE: ScopeSet.of(
+        Scope.CALENDAR_EVENTS,
+        Scope.CALENDAR_CALENDARS,
+        Scope.CALENDAR_CALENDARLIST,
+        Scope.CALENDAR_FREEBUSY,
+    ),
     ScopeProfile.FULL: ScopeSet.of(Scope.CALENDAR),
 }
 
