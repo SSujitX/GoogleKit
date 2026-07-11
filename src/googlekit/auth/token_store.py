@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import os
 import stat
+import tempfile
 from pathlib import Path
 
 from googlekit.core.exceptions import ConfigurationError
@@ -22,11 +23,30 @@ class FileTokenStore:
         return self.path.read_text(encoding="utf-8")
 
     def save(self, token_json: str) -> None:
+        """Atomically write the token file with mode ``0600`` when supported."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(token_json, encoding="utf-8")
-        # Windows may not support POSIX mode bits fully.
-        with contextlib.suppress(OSError):
-            os.chmod(self.path, stat.S_IRUSR | stat.S_IWUSR)
+        data = token_json.encode("utf-8")
+        fd, tmp_name = tempfile.mkstemp(
+            dir=str(self.path.parent),
+            prefix=f".{self.path.name}.",
+            suffix=".tmp",
+        )
+        tmp_path = Path(tmp_name)
+        try:
+            with contextlib.suppress(OSError):
+                os.fchmod(fd, stat.S_IRUSR | stat.S_IWUSR)
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(data)
+                handle.flush()
+                with contextlib.suppress(OSError):
+                    os.fsync(handle.fileno())
+            os.replace(tmp_path, self.path)
+            with contextlib.suppress(OSError):
+                os.chmod(self.path, stat.S_IRUSR | stat.S_IWUSR)
+        except Exception:
+            with contextlib.suppress(OSError):
+                tmp_path.unlink(missing_ok=True)
+            raise
 
     def clear(self) -> None:
         if self.path.exists():
