@@ -10,6 +10,7 @@ from googlekit.auth.scopes import ScopeProfile, ScopeSet, preset_for
 from googlekit.auth.service_account import ServiceAccountCredentialProvider
 from googlekit.core.configuration import ClientConfig
 from googlekit.core.protocols import CredentialProvider
+from googlekit.core.service_apis import CalendarAPI
 from googlekit.core.transport import Transport
 from googlekit.gcalendar.calendars import CalendarsManager
 from googlekit.gcalendar.events import EventsManager
@@ -19,8 +20,10 @@ from googlekit.gcalendar.freebusy import FreeBusyManager
 class CalendarClient:
     """High-level Google Calendar API client.
 
-    Managers:
-        calendars, events, freebusy
+    Managers: ``calendars``, ``events``, ``freebusy``.
+
+    Timed events need timezone-aware datetimes or
+    ``ClientConfig(default_timezone="...")``.
     """
 
     def __init__(
@@ -38,14 +41,17 @@ class CalendarClient:
 
     @property
     def provider(self) -> CredentialProvider:
+        """Credential provider backing this client (advanced)."""
         return self._provider
 
     @property
     def config(self) -> ClientConfig:
+        """Runtime config (timeout, retry, default_timezone, …)."""
         return self._config
 
     @property
     def transport(self) -> Transport:
+        """HTTP/discovery transport (advanced / tests)."""
         return self._transport
 
     @classmethod
@@ -57,7 +63,7 @@ class CalendarClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> CalendarClient:
+    ) -> CalendarAPI:
         """Create a Calendar client using desktop OAuth."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = OAuthCredentialProvider(
@@ -77,7 +83,7 @@ class CalendarClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> CalendarClient:
+    ) -> CalendarAPI:
         """Create a Calendar client using a service-account JSON key."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = ServiceAccountCredentialProvider(
@@ -96,7 +102,7 @@ class CalendarClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> CalendarClient:
+    ) -> CalendarAPI:
         """Create a Calendar client using Application Default Credentials."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = ADCCredentialProvider(
