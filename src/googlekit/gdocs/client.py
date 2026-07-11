@@ -10,6 +10,7 @@ from googlekit.auth.scopes import ScopeProfile, ScopeSet, preset_for
 from googlekit.auth.service_account import ServiceAccountCredentialProvider
 from googlekit.core.configuration import ClientConfig
 from googlekit.core.protocols import CredentialProvider
+from googlekit.core.service_apis import DocsAPI
 from googlekit.core.transport import Transport
 from googlekit.gdocs.content import ContentManager
 from googlekit.gdocs.documents import DocumentsManager
@@ -20,8 +21,10 @@ from googlekit.gdocs.tables import TablesManager
 class DocsClient:
     """High-level Google Docs API client.
 
-    Managers:
-        documents, content, tables, images
+    Managers: ``documents``, ``content``, ``tables``, ``images``.
+
+    Text indexes are UTF-16 code units. Export/share need Drive scopes
+    (request ``gdrive`` yourself — never added silently).
     """
 
     def __init__(
@@ -40,14 +43,17 @@ class DocsClient:
 
     @property
     def provider(self) -> CredentialProvider:
+        """Credential provider backing this client (advanced)."""
         return self._provider
 
     @property
     def config(self) -> ClientConfig:
+        """Runtime config (timeout, retry, …)."""
         return self._config
 
     @property
     def transport(self) -> Transport:
+        """HTTP/discovery transport (advanced / tests)."""
         return self._transport
 
     @classmethod
@@ -59,7 +65,7 @@ class DocsClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> DocsClient:
+    ) -> DocsAPI:
         """Create a Docs client using desktop OAuth."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = OAuthCredentialProvider(
@@ -79,7 +85,7 @@ class DocsClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> DocsClient:
+    ) -> DocsAPI:
         """Create a Docs client using a service-account JSON key."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = ServiceAccountCredentialProvider(
@@ -98,7 +104,7 @@ class DocsClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> DocsClient:
+    ) -> DocsAPI:
         """Create a Docs client using Application Default Credentials."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = ADCCredentialProvider(
