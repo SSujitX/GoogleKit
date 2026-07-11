@@ -1,7 +1,20 @@
+---
+title: Authenticate GoogleKit (OAuth, ADC, service account)
+description: >-
+  Set up Google OAuth 2.0 desktop flow, Application Default Credentials, or
+  service accounts with GoogleKit. Token storage, auto-detect, and security tips.
+---
+
 # Authentication
 
 GoogleKit supports three primary credential methods plus auto-detection.
 Full site: [https://ssujitx.github.io/GoogleKit/](https://ssujitx.github.io/GoogleKit/).
+
+**Official Google docs:** [OAuth 2.0](https://developers.google.com/identity/protocols/oauth2) ·
+[Installed apps](https://developers.google.com/identity/protocols/oauth2/native-app) ·
+[Service accounts](https://developers.google.com/identity/protocols/oauth2/service-account) ·
+[ADC](https://cloud.google.com/docs/authentication/application-default-credentials) ·
+[Cloud Console credentials](https://console.cloud.google.com/apis/credentials)
 
 ## Choose a method
 
