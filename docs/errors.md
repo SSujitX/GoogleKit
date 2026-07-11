@@ -50,18 +50,24 @@ Authorization headers and tokens are never included in messages.
 
 ## Retries
 
-Transient failures (429, 5xx, and resumable upload/download chunk errors) are retried
+Transient failures (429, selected 403 rate limits, 5xx, and transport/timeouts) are retried
 per `ClientConfig.retry` / `RetryPolicy`. When attempts are exhausted, GoogleKit raises
 `RetryExhaustedError` with the original exception in `last_error`.
 
 ```python
-from googlekit.core.configuration import ClientConfig
-from googlekit.core.retries import RetryPolicy
+from googlekit import ClientConfig, RetryPolicy
 from googlekit.gdrive import DriveClient
 
+# Shorthand: max_attempts only
 drive = DriveClient.from_oauth(
     "client_secrets.json",
-    config=ClientConfig(retry=RetryPolicy(max_attempts=5)),
+    config=ClientConfig(retry=5),
+)
+
+# Full policy
+drive = DriveClient.from_oauth(
+    "client_secrets.json",
+    config=ClientConfig(retry=RetryPolicy(max_attempts=8, initial_delay=1.0)),
 )
 ```
 
