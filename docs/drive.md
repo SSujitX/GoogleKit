@@ -29,7 +29,7 @@ uv add googlekit
 
 In [Google Cloud Console](https://console.cloud.google.com/), enable the **Google Drive API** for your project and create OAuth client credentials (desktop) and/or a service-account key as needed.
 
-GoogleKit Drive exposes four managers on a single client:
+GoogleKit Drive exposes four managers on a single client, plus optional flat **shortcuts** (same operations, simpler scripts):
 
 | Manager | Attribute | Role |
 | ------- | --------- | ---- |
@@ -37,6 +37,39 @@ GoogleKit Drive exposes four managers on a single client:
 | `FoldersManager` | `drive.folders` | Create folders/paths, list children, recursive directory sync |
 | `PermissionsManager` | `drive.permissions` | Share with users/groups/domain/anyone, roles, shareable links |
 | `ChangesManager` | `drive.changes` | Start page token and incremental changes feed |
+
+### Optional shortcuts vs managers
+
+Both appear in IDE autocomplete after `drive.` (typed as `DriveAPI`). Prefer managers for advanced options; use shortcuts for everyday scripts.
+
+| Shortcut | Delegates to |
+| -------- | ------------ |
+| `list_files(...)` | `files.list(...)` |
+| `list_folders(...)` | `files.list` with folder MIME filter |
+| `search_files(name)` / `search_folders(name)` | `files.search(...)` |
+| `create_folder(name, parent_id=...)` | `folders.create(...)` |
+| `upload_file(path, folder_id=...)` | `files.upload_path(..., parents=[...])` |
+| `download_file(file_id, destination=...)` | `files.download_path(...)` |
+| `upload_folder(local_path, ...)` | `folders.upload_directory(...)` |
+| `delete_file` / `delete_folder` | `files.trash` or `files.delete` |
+| `share` / `unshare` / `list_permissions` | `permissions.*` |
+| `get_share_link(..., public=True)` | `permissions.create_shareable_link` |
+
+```python
+from googlekit.auth.scopes import ScopeProfile
+from googlekit.gdrive import DriveClient
+
+drive = DriveClient.from_oauth("client_secret.json", profile=ScopeProfile.FULL)
+
+# Manager
+page = drive.files.list(folder_id="root")
+# Shortcut (equivalent)
+page = drive.list_files(folder_id="root")
+
+folder = drive.create_folder("Reports")          # or drive.folders.create(...)
+result = drive.upload_file("a.pdf", folder_id=folder.id)
+drive.share(result.file.id, email="you@example.com")
+```
 
 Typical entry points:
 
@@ -57,20 +90,30 @@ drive = DriveClient.from_oauth("client_secret.json", token_path="token.json")
 
 ## Auth & scopes
 
-See also [Authentication](authentication.md) and [Scopes](scopes.md).
+See also [Authentication](authentication.md) (four methods: ADC, service account, OAuth, **auto**) and [Scopes](scopes.md).
 
-### Auto-detect
+### 1. Application Default Credentials
 
 ```python
-from googlekit import GoogleKit
+from googlekit.gdrive import DriveClient
 
-client = GoogleKit.auto(services=["gdrive"])
-drive = client.drive
+drive = DriveClient.from_adc(quota_project_id=None)
 ```
 
-Order: try ADC → look for credential files in the working directory → raise `AuthenticationError` with guidance.
+### 2. Service account
 
-### OAuth (desktop)
+```python
+from googlekit.gdrive import DriveClient
+
+drive = DriveClient.from_service_account(
+    "service-account.json",
+    subject=None,  # set for Workspace domain-wide delegation
+)
+```
+
+Ordinary service accounts do **not** see a personal user's Drive. Share files/folders with the service-account email, or use domain-wide delegation with `subject`.
+
+### 3. OAuth (desktop)
 
 ```python
 from googlekit import GoogleKit
@@ -98,26 +141,18 @@ drive = DriveClient.from_oauth(
 )
 ```
 
-### Service account
+### 4. Auto-detect (`auto()`)
+
+Separate from `from_adc()` — discovers ADC **or** a local credential JSON.
 
 ```python
-from googlekit.gdrive import DriveClient
+from googlekit import GoogleKit
 
-drive = DriveClient.from_service_account(
-    "service-account.json",
-    subject=None,  # set for Workspace domain-wide delegation
-)
+client = GoogleKit.auto(services=["gdrive"])
+drive = client.drive
 ```
 
-Ordinary service accounts do **not** see a personal user's Drive. Share files/folders with the service-account email, or use domain-wide delegation with `subject`.
-
-### Application Default Credentials
-
-```python
-from googlekit.gdrive import DriveClient
-
-drive = DriveClient.from_adc(quota_project_id=None)
-```
+Order: try ADC → look for credential files in the working directory → raise `AuthenticationError` with guidance.
 
 ### Drive scope presets
 
