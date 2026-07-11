@@ -169,6 +169,25 @@ def test_create_naive_with_config_default_timezone() -> None:
     assert body["start"]["timeZone"] == "Asia/Dhaka"
 
 
+def test_list_with_sync_token_forces_show_deleted() -> None:
+    service = MagicMock()
+    list_req = MagicMock()
+    list_req.execute.return_value = {"items": [], "nextSyncToken": "sync-2"}
+    service.events.return_value.list.return_value = list_req
+    transport = MagicMock()
+    transport.config = ClientConfig(retry=RetryPolicy(enabled=False, max_attempts=1))
+    transport.get_service.return_value = service
+    transport.execute.side_effect = lambda request, **kw: request.execute()
+    mgr = EventsManager(transport)
+    mgr.list("primary", sync_token="sync-1", show_deleted=False, q="ignored")
+    kwargs = service.events.return_value.list.call_args.kwargs
+    assert kwargs["syncToken"] == "sync-1"
+    assert kwargs["showDeleted"] is True
+    assert "q" not in kwargs
+    assert "orderBy" not in kwargs
+    assert "timeMin" not in kwargs
+
+
 def test_calendar_client_managers() -> None:
     client = CalendarClient(_Provider())
     assert client.calendars is not None
