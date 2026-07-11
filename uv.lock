@@ -475,39 +475,7 @@ wheels = [
 name = "googlekit"
 version = "0.1.0"
 source = { editable = "." }
-
-[package.optional-dependencies]
-all = [
-    { name = "google-api-python-client" },
-    { name = "google-auth" },
-    { name = "google-auth-httplib2" },
-    { name = "google-auth-oauthlib" },
-]
-gcalendar = [
-    { name = "google-api-python-client" },
-    { name = "google-auth" },
-    { name = "google-auth-httplib2" },
-    { name = "google-auth-oauthlib" },
-]
-gdocs = [
-    { name = "google-api-python-client" },
-    { name = "google-auth" },
-    { name = "google-auth-httplib2" },
-    { name = "google-auth-oauthlib" },
-]
-gdrive = [
-    { name = "google-api-python-client" },
-    { name = "google-auth" },
-    { name = "google-auth-httplib2" },
-    { name = "google-auth-oauthlib" },
-]
-gsheets = [
-    { name = "google-api-python-client" },
-    { name = "google-auth" },
-    { name = "google-auth-httplib2" },
-    { name = "google-auth-oauthlib" },
-]
-gslides = [
+dependencies = [
     { name = "google-api-python-client" },
     { name = "google-auth" },
     { name = "google-auth-httplib2" },
@@ -524,32 +492,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "google-api-python-client", marker = "extra == 'all'", specifier = ">=2.198.0" },
-    { name = "google-api-python-client", marker = "extra == 'gcalendar'", specifier = ">=2.198.0" },
-    { name = "google-api-python-client", marker = "extra == 'gdocs'", specifier = ">=2.198.0" },
-    { name = "google-api-python-client", marker = "extra == 'gdrive'", specifier = ">=2.198.0" },
-    { name = "google-api-python-client", marker = "extra == 'gsheets'", specifier = ">=2.198.0" },
-    { name = "google-api-python-client", marker = "extra == 'gslides'", specifier = ">=2.198.0" },
-    { name = "google-auth", marker = "extra == 'all'", specifier = ">=2.55.2" },
-    { name = "google-auth", marker = "extra == 'gcalendar'", specifier = ">=2.55.2" },
-    { name = "google-auth", marker = "extra == 'gdocs'", specifier = ">=2.55.2" },
-    { name = "google-auth", marker = "extra == 'gdrive'", specifier = ">=2.55.2" },
-    { name = "google-auth", marker = "extra == 'gsheets'", specifier = ">=2.55.2" },
-    { name = "google-auth", marker = "extra == 'gslides'", specifier = ">=2.55.2" },
-    { name = "google-auth-httplib2", marker = "extra == 'all'", specifier = ">=0.4.0" },
-    { name = "google-auth-httplib2", marker = "extra == 'gcalendar'", specifier = ">=0.4.0" },
-    { name = "google-auth-httplib2", marker = "extra == 'gdocs'", specifier = ">=0.4.0" },
-    { name = "google-auth-httplib2", marker = "extra == 'gdrive'", specifier = ">=0.4.0" },
-    { name = "google-auth-httplib2", marker = "extra == 'gsheets'", specifier = ">=0.4.0" },
-    { name = "google-auth-httplib2", marker = "extra == 'gslides'", specifier = ">=0.4.0" },
-    { name = "google-auth-oauthlib", marker = "extra == 'all'", specifier = ">=1.4.0" },
-    { name = "google-auth-oauthlib", marker = "extra == 'gcalendar'", specifier = ">=1.4.0" },
-    { name = "google-auth-oauthlib", marker = "extra == 'gdocs'", specifier = ">=1.4.0" },
-    { name = "google-auth-oauthlib", marker = "extra == 'gdrive'", specifier = ">=1.4.0" },
-    { name = "google-auth-oauthlib", marker = "extra == 'gsheets'", specifier = ">=1.4.0" },
-    { name = "google-auth-oauthlib", marker = "extra == 'gslides'", specifier = ">=1.4.0" },
+    { name = "google-api-python-client", specifier = ">=2.198.0" },
+    { name = "google-auth", specifier = ">=2.55.2" },
+    { name = "google-auth-httplib2", specifier = ">=0.4.0" },
+    { name = "google-auth-oauthlib", specifier = ">=1.4.0" },
 ]
-provides-extras = ["gdrive", "gsheets", "gcalendar", "gdocs", "gslides", "all"]
 
 [package.metadata.requires-dev]
 dev = [
