@@ -72,7 +72,8 @@ class FoldersManager:
         for part in parts:
             existing = self._files.find_by_name(
                 part,
-                parents=[current] if current else None,
+                # Scope to My Drive root when no parent was given (not all of Drive).
+                parents=[current] if current else ["root"],
                 mime_type=DRIVE_FOLDER_MIME,
             )
             if existing is not None:
