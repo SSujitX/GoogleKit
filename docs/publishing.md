@@ -1,6 +1,17 @@
+---
+title: Publish GoogleKit to PyPI
+description: >-
+  Build and publish GoogleKit with uv, Trusted Publishing, SemVer, and the
+  release checklist for maintainers.
+---
+
 # Publishing
 
 GoogleKit is published with [uv](https://docs.astral.sh/uv/) and semantic versioning.
+
+**Related:** [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/) ·
+[PyPI project](https://pypi.org/project/googlekit/) ·
+[RELEASE.md](https://github.com/SSujitX/GoogleKit/blob/master/RELEASE.md)
 
 ## Build locally
 
