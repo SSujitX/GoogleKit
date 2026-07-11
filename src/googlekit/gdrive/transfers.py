@@ -303,17 +303,24 @@ class DriveTransfers:
         if getattr(request, "resumable", None) is None:
             return self._transport.execute(request)
 
+        from googlekit.core.retries import call_with_retries
         from googlekit.core.transport import map_http_error
 
         response: dict[str, Any] | None = None
         while response is None:
-            try:
-                status, response = request.next_chunk()
-            except Exception as exc:
-                name = type(exc).__name__
-                if name == "HttpError" or hasattr(exc, "resp"):
-                    raise map_http_error(exc) from exc
-                raise
+            def _next_chunk() -> tuple[Any, dict[str, Any] | None]:
+                try:
+                    return request.next_chunk()
+                except Exception as exc:
+                    name = type(exc).__name__
+                    if name == "HttpError" or hasattr(exc, "resp"):
+                        raise map_http_error(exc) from exc
+                    raise
+
+            status, response = call_with_retries(
+                _next_chunk,
+                policy=self._transport.config.retry,
+            )
             if progress and status is not None:
                 try:
                     progress(int(status.resumable_progress), total_hint)
@@ -327,18 +334,25 @@ class DriveTransfers:
         *,
         progress: ProgressCallback | None,
     ) -> int:
+        from googlekit.core.retries import call_with_retries
         from googlekit.core.transport import map_http_error
 
         done = False
         size = 0
         while not done:
-            try:
-                status, done = downloader.next_chunk()
-            except Exception as exc:
-                name = type(exc).__name__
-                if name == "HttpError" or hasattr(exc, "resp"):
-                    raise map_http_error(exc) from exc
-                raise
+            def _next_chunk() -> tuple[Any, bool]:
+                try:
+                    return downloader.next_chunk()
+                except Exception as exc:
+                    name = type(exc).__name__
+                    if name == "HttpError" or hasattr(exc, "resp"):
+                        raise map_http_error(exc) from exc
+                    raise
+
+            status, done = call_with_retries(
+                _next_chunk,
+                policy=self._transport.config.retry,
+            )
             if status is not None:
                 size = int(status.resumable_progress)
                 if progress:
