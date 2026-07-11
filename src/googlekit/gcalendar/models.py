@@ -87,6 +87,11 @@ class Attendee:
         )
 
     def to_api(self) -> dict[str, Any]:
+        """Serialize writable attendee fields for create/patch bodies.
+
+        ``self`` and ``organizer`` are read-only on the Calendar Event resource
+        and are intentionally omitted from the request payload.
+        """
         body: dict[str, Any] = {"email": self.email}
         if self.display_name:
             body["displayName"] = self.display_name
@@ -94,10 +99,6 @@ class Attendee:
             body["optional"] = True
         if self.response_status:
             body["responseStatus"] = self.response_status
-        if self.self:
-            body["self"] = True
-        if self.organizer:
-            body["organizer"] = True
         return body
 
 
