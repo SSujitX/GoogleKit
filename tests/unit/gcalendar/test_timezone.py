@@ -188,6 +188,66 @@ def test_list_with_sync_token_forces_show_deleted() -> None:
     assert "timeMin" not in kwargs
 
 
+def test_patch_response_status_self_only_and_attendees_omitted_in_body() -> None:
+    from googlekit.gcalendar.models import Attendee
+
+    service = MagicMock()
+    patch_req = MagicMock()
+    patch_req.execute.return_value = {
+        "id": "evt1",
+        "attendees": [
+            {"email": "me@example.com", "self": True, "responseStatus": "accepted"},
+            {"email": "other@example.com", "responseStatus": "needsAction"},
+        ],
+    }
+    service.events.return_value.patch.return_value = patch_req
+    transport = MagicMock()
+    transport.config = ClientConfig(retry=RetryPolicy(enabled=False, max_attempts=1))
+    transport.get_service.return_value = service
+    transport.execute.side_effect = lambda request, **kw: request.execute()
+    mgr = EventsManager(transport)
+    mgr.patch(
+        "primary",
+        "evt1",
+        attendees=[
+            Attendee(email="me@example.com", self=True),
+            Attendee(email="other@example.com"),
+        ],
+        response_status="accepted",
+    )
+    kwargs = service.events.return_value.patch.call_args.kwargs
+    assert "attendeesOmitted" not in kwargs
+    body = kwargs["body"]
+    assert body["attendeesOmitted"] is True
+    by_email = {a["email"]: a for a in body["attendees"]}
+    assert by_email["me@example.com"]["self"] is True
+    assert by_email["me@example.com"]["responseStatus"] == "accepted"
+    assert "responseStatus" not in by_email["other@example.com"]
+
+
+def test_patch_response_status_requires_self() -> None:
+    from googlekit.gcalendar.models import Attendee
+
+    transport = MagicMock()
+    transport.config = ClientConfig()
+    transport.get_service.return_value = MagicMock()
+    mgr = EventsManager(transport)
+    with pytest.raises(ValidationError, match="self=True"):
+        mgr.patch(
+            "primary",
+            "evt1",
+            attendees=[Attendee(email="other@example.com")],
+            response_status="accepted",
+        )
+
+
+def test_attendee_to_api_includes_self() -> None:
+    from googlekit.gcalendar.models import Attendee
+
+    body = Attendee(email="me@example.com", self=True).to_api()
+    assert body["self"] is True
+
+
 def test_calendar_client_managers() -> None:
     client = CalendarClient(_Provider())
     assert client.calendars is not None
