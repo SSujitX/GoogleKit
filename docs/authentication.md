@@ -14,7 +14,8 @@ Full site: [https://ssujitx.github.io/GoogleKit/](https://ssujitx.github.io/Goog
 [Installed apps](https://developers.google.com/identity/protocols/oauth2/native-app) ·
 [Service accounts](https://developers.google.com/identity/protocols/oauth2/service-account) ·
 [ADC](https://cloud.google.com/docs/authentication/application-default-credentials) ·
-[Cloud Console credentials](https://console.cloud.google.com/apis/credentials)
+[Google Auth Platform → Clients](https://console.cloud.google.com/auth/clients) ·
+[Create credentials (Workspace)](https://developers.google.com/workspace/guides/create-credentials)
 
 ## Choose a method
 
@@ -47,10 +48,12 @@ client = GoogleKit.from_oauth(
 
 **Cloud Console setup (summary):**
 
-1. Create a project and enable the APIs you need
-2. Configure the OAuth consent screen (add yourself as a test user while testing)
-3. Create credentials → **OAuth client ID** → **Desktop app**
+1. Create a project and enable the APIs you need ([Library](https://console.cloud.google.com/apis/library))
+2. Configure **[Google Auth Platform](https://console.cloud.google.com/auth/overview)**: [Branding](https://console.cloud.google.com/auth/branding), [Audience](https://console.cloud.google.com/auth/audience) (add yourself as a test user while testing), optional [Data Access](https://console.cloud.google.com/auth/scopes)
+3. **[Clients](https://console.cloud.google.com/auth/clients) → + Create client → Desktop app**
 4. Download JSON → save as `client_secrets.json`
+
+(If you still see the older UI: APIs & Services → OAuth consent screen + Credentials → OAuth client ID.)
 
 See `examples/auth/oauth_desktop.py`.
 
