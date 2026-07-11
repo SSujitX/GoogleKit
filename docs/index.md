@@ -32,6 +32,7 @@ description: >-
 ## Why GoogleKit?
 
 - One consistent Python API across five Google Workspace products
+- **Managers** (full control) plus optional **shortcuts** (flat helpers) — both autocomplete after `client.drive.`
 - Google client libraries included by default (`uv add googlekit` / `pip install googlekit`)
 - OAuth 2.0 desktop, service accounts, and Application Default Credentials (ADC)
 - Least-privilege scope presets per service
@@ -41,12 +42,20 @@ description: >-
 
 ```python
 from googlekit import GoogleKit
+from googlekit.auth.scopes import ScopeProfile
 
-client = GoogleKit.auto(services=["gdrive", "gsheets"])
+client = GoogleKit.auto(services=["gdrive", "gsheets"], profile=ScopeProfile.FULL)
+
+# Managers
 page = client.drive.files.list(folder_id="root")
-for f in page.items:
-    print(f.name)
+client.sheets.values.write("sid", "Sheet1!A1", [["Ada", 98]])
+
+# Optional shortcuts (equivalent)
+page = client.drive.list_files(folder_id="root")
+client.sheets.write_values("sid", "Sheet1!A1", [["Ada", 98]])
 ```
+
+Each service page documents **both** styles: [Drive](drive.md) · [Sheets](sheets.md) · [Calendar](calendar.md) · [Docs](docs.md) · [Slides](slides.md).
 
 ## Documentation map
 
@@ -63,11 +72,11 @@ for f in page.items:
 
 | Service | Page | Contents |
 | ------- | ---- | -------- |
-| Google Drive | [Drive](drive.md) | Files, folders, permissions, changes, export MIME types, Shared Drives, recipes |
-| Google Sheets | [Sheets](sheets.md) | Values, worksheets, formatting, A1 ranges, recipes |
-| Google Calendar | [Calendar](calendar.md) | Events, Meet, free/busy, sync tokens, timezones, recipes |
-| Google Docs | [Docs](docs.md) | Documents, text, tables, UTF-16 indexes, export/share |
-| Google Slides | [Slides](slides.md) | Presentations, pages, shapes, images, tables, templates |
+| Google Drive | [Drive](drive.md) | Managers + shortcuts, files, folders, permissions, Shared Drives |
+| Google Sheets | [Sheets](sheets.md) | Managers + shortcuts, values, worksheets, formatting |
+| Google Calendar | [Calendar](calendar.md) | Managers + shortcuts, events, Meet, free/busy |
+| Google Docs | [Docs](docs.md) | Managers + shortcuts, text, tables, UTF-16 indexes |
+| Google Slides | [Slides](slides.md) | Managers + shortcuts, pages, shapes, images, tables |
 
 ## Install
 
