@@ -15,6 +15,7 @@ from googlekit.core.transport import Transport
 from googlekit.gdocs.content import ContentManager
 from googlekit.gdocs.documents import DocumentsManager
 from googlekit.gdocs.images import ImagesManager
+from googlekit.gdocs.models import BatchUpdateResult, Document
 from googlekit.gdocs.tables import TablesManager
 
 
@@ -22,6 +23,8 @@ class DocsClient:
     """High-level Google Docs API client.
 
     Managers: ``documents``, ``content``, ``tables``, ``images``.
+
+    Shortcuts: ``create_document``, ``get_document``, ``append_text``, ``insert_text``.
 
     Text indexes are UTF-16 code units. Export/share need Drive scopes
     (request ``gdrive`` yourself — never added silently).
@@ -40,6 +43,43 @@ class DocsClient:
         self.content = ContentManager(self._transport)
         self.tables = TablesManager(self._transport)
         self.images = ImagesManager(self._transport)
+
+    def create_document(self, title: str = "Untitled document") -> Document:
+        """Create a new blank Google Doc."""
+        return self.documents.create(title)
+
+    def get_document(
+        self,
+        document_id: str,
+        *,
+        include_tabs_content: bool = True,
+    ) -> Document:
+        """Fetch a document including body structure."""
+        return self.documents.get(
+            document_id, include_tabs_content=include_tabs_content
+        )
+
+    def append_text(self, document_id: str, text: str) -> BatchUpdateResult:
+        """Append ``text`` just before the final newline of the body."""
+        return self.content.append_text(document_id, text)
+
+    def insert_text(
+        self,
+        document_id: str,
+        text: str,
+        index: int,
+        *,
+        segment_id: str | None = None,
+        tab_id: str | None = None,
+    ) -> BatchUpdateResult:
+        """Insert ``text`` at a UTF-16 ``index`` (body content usually starts at 1)."""
+        return self.content.insert_text(
+            document_id,
+            text,
+            index,
+            segment_id=segment_id,
+            tab_id=tab_id,
+        )
 
     @property
     def provider(self) -> CredentialProvider:
