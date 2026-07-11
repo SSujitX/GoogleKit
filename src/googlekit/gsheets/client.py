@@ -10,6 +10,7 @@ from googlekit.auth.scopes import ScopeProfile, ScopeSet, preset_for
 from googlekit.auth.service_account import ServiceAccountCredentialProvider
 from googlekit.core.configuration import ClientConfig
 from googlekit.core.protocols import CredentialProvider
+from googlekit.core.service_apis import SheetsAPI
 from googlekit.core.transport import Transport
 from googlekit.gsheets.formatting import FormattingManager
 from googlekit.gsheets.spreadsheets import SpreadsheetsManager
@@ -20,8 +21,7 @@ from googlekit.gsheets.worksheets import WorksheetsManager
 class SheetsClient:
     """High-level Google Sheets API client.
 
-    Managers:
-        spreadsheets, values, worksheets, formatting
+    Managers: ``spreadsheets``, ``values``, ``worksheets``, ``formatting``.
     """
 
     def __init__(
@@ -40,14 +40,17 @@ class SheetsClient:
 
     @property
     def provider(self) -> CredentialProvider:
+        """Credential provider backing this client (advanced)."""
         return self._provider
 
     @property
     def config(self) -> ClientConfig:
+        """Runtime config (timeout, retry, …)."""
         return self._config
 
     @property
     def transport(self) -> Transport:
+        """HTTP/discovery transport (advanced / tests)."""
         return self._transport
 
     @classmethod
@@ -59,7 +62,7 @@ class SheetsClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> SheetsClient:
+    ) -> SheetsAPI:
         """Create a Sheets client using desktop OAuth."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = OAuthCredentialProvider(
@@ -79,7 +82,7 @@ class SheetsClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> SheetsClient:
+    ) -> SheetsAPI:
         """Create a Sheets client using a service-account JSON key."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = ServiceAccountCredentialProvider(
@@ -98,7 +101,7 @@ class SheetsClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> SheetsClient:
+    ) -> SheetsAPI:
         """Create a Sheets client using Application Default Credentials."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = ADCCredentialProvider(
