@@ -1,6 +1,6 @@
 [project]
 name = "googlekit"
-version = "0.0.1"
+version = "0.0.2"
 description = "Unofficial Python SDK for Google Drive API, Google Sheets API, Google Calendar API, Google Docs API, and Google Slides API (Google Workspace)"
 readme = "README.md"
 license = "MIT"
