@@ -1,6 +1,21 @@
+---
+title: Google Drive API Python client (GoogleKit)
+description: >-
+  Upload, download, search, share, and export Google Drive files with GoogleKit.
+  Typed DriveClient for Drive API v3 — folders, permissions, changes, Shared Drives.
+---
+
 # Google Drive
 
-Reference for **GoogleKit Drive** (`googlekit.gdrive`) — a typed client for [Google Drive API v3](https://developers.google.com/drive/api/v3/reference).
+Reference for **GoogleKit Drive** (`googlekit.gdrive`) — a typed client for
+[Google Drive API v3](https://developers.google.com/workspace/drive/api/reference/rest/v3).
+
+**Official Google docs:** [Drive API guides](https://developers.google.com/workspace/drive/api/guides/about-sdk) ·
+[REST reference](https://developers.google.com/workspace/drive/api/reference/rest/v3) ·
+[Files](https://developers.google.com/workspace/drive/api/reference/rest/v3/files) ·
+[Permissions](https://developers.google.com/workspace/drive/api/reference/rest/v3/permissions) ·
+[Changes](https://developers.google.com/workspace/drive/api/reference/rest/v3/changes) ·
+[Enable API](https://console.cloud.google.com/apis/library/drive.googleapis.com)
 
 Site: [https://ssujitx.github.io/GoogleKit/](https://ssujitx.github.io/GoogleKit/)
 
