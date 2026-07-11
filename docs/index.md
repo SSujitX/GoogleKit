@@ -1,30 +1,65 @@
 # GoogleKit
 
-Unofficial Python SDK for **Google Drive**, **Sheets**, **Calendar**, **Docs**, and **Slides**.
+**Unofficial Python SDK** for the [Google Drive API](drive.md), [Google Sheets API](sheets.md), [Google Calendar API](calendar.md), [Google Docs API](docs.md), and [Google Slides API](slides.md).
 
 !!! warning "Unofficial"
     GoogleKit is not affiliated with, endorsed by, or sponsored by Google.
     Google trademarks remain the property of their owners.
 
+**Site:** [https://ssujitx.github.io/GoogleKit/](https://ssujitx.github.io/GoogleKit/) · **PyPI:** [googlekit](https://pypi.org/project/googlekit/) · **Repo:** [SSujitX/GoogleKit](https://github.com/SSujitX/GoogleKit)
+
 ## Why GoogleKit?
 
-- One consistent API across five Workspace products
-- Google client libraries included by default (`uv add googlekit`)
-- OAuth, service accounts, and ADC with shared credentials
-- Least-privilege scope presets
-- Retries, lazy pagination, and actionable errors
+- One consistent Python API across five Google Workspace products
+- Google client libraries included by default (`uv add googlekit` / `pip install googlekit`)
+- OAuth 2.0 desktop, service accounts, and Application Default Credentials (ADC)
+- Least-privilege scope presets per service
+- Retries, lazy pagination, typed exceptions, and `py.typed` support
 
-## Quick links
-
-- [Installation](installation.md)
-- [Authentication](authentication.md)
-- [Scopes](scopes.md)
-- [Errors](errors.md)
-- [Publishing to PyPI](publishing.md)
+## Quick start
 
 ```python
 from googlekit import GoogleKit
 
-kit = GoogleKit.from_oauth("client_secret.json", services=["gdrive"])
-kit.drive.files.upload("report.pdf")
+client = GoogleKit.auto(services=["gdrive", "gsheets"])
+page = client.drive.files.list(folder_id="root")
+for f in page.items:
+    print(f.name)
 ```
+
+## Documentation map
+
+### Getting started
+
+| Page | What it covers |
+| ---- | -------------- |
+| [Installation](installation.md) | `pip` / `uv`, Python versions |
+| [Authentication](authentication.md) | OAuth, ADC, service account, auto-detect, security |
+| [Scopes](scopes.md) | Scope presets, aggregation, `InsufficientScopesError` |
+| [Errors](errors.md) | Exception hierarchy and HTTP mapping |
+
+### Google Workspace services (full reference)
+
+| Service | Page | Contents |
+| ------- | ---- | -------- |
+| Google Drive | [Drive](drive.md) | Files, folders, permissions, changes, export MIME types, Shared Drives, recipes |
+| Google Sheets | [Sheets](sheets.md) | Values, worksheets, formatting, A1 ranges, recipes |
+| Google Calendar | [Calendar](calendar.md) | Events, Meet, free/busy, sync tokens, timezones, recipes |
+| Google Docs | [Docs](docs.md) | Documents, content, tables, UTF-16 indexes, export/share |
+| Google Slides | [Slides](slides.md) | Presentations, pages, elements, images, tables, templates |
+
+### Maintainers
+
+| Page | What it covers |
+| ---- | -------------- |
+| [Publishing](publishing.md) | PyPI Trusted Publishing / release notes |
+
+## Install
+
+```bash
+uv add googlekit
+# or
+pip install googlekit
+```
+
+Then enable the APIs you need in [Google Cloud Console](https://console.cloud.google.com/apis/library).
