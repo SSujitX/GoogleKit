@@ -22,6 +22,35 @@ from googlekit.core.retries import RetryPolicy, call_with_retries
 logger = logging.getLogger(__name__)
 
 
+class _UserAgentHttp:
+    """Wrap an HTTP client so every request includes a custom User-Agent.
+
+    ``httplib2.Http.headers`` is not reliably merged by ``AuthorizedHttp.request``,
+    which builds request headers from its ``headers`` argument instead.
+    """
+
+    def __init__(self, http: Any, user_agent: str) -> None:
+        self._http = http
+        self._user_agent = user_agent
+
+    def request(
+        self,
+        uri: str,
+        method: str = "GET",
+        body: Any = None,
+        headers: dict[str, str] | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        merged = dict(headers or {})
+        # Prefer lowercase; httplib2 normalizes, but set both for safety.
+        if not any(k.lower() == "user-agent" for k in merged):
+            merged["user-agent"] = self._user_agent
+        return self._http.request(uri, method=method, body=body, headers=merged, **kwargs)
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._http, name)
+
+
 def map_http_error(exc: BaseException) -> APIError:
     """Map googleapiclient HttpError (or similar) into a GoogleKit exception."""
     resp = getattr(exc, "resp", None)
@@ -128,17 +157,12 @@ class Transport:
                 logger.debug("Unable to set HTTP timeout on discovery transport")
 
         ua = self._config.user_agent or USER_AGENT
-        try:
-            # httplib2.Http exposes .headers as a dict-like object.
-            http.headers = getattr(http, "headers", None) or {}
-            http.headers["user-agent"] = ua
-        except Exception:  # pragma: no cover
-            logger.debug("Unable to set user-agent on discovery HTTP client")
 
         try:
             from google_auth_httplib2 import AuthorizedHttp
 
-            authorized = AuthorizedHttp(creds, http=http)
+            authorized: Any = AuthorizedHttp(creds, http=http)
+            authorized = _UserAgentHttp(authorized, ua)
         except Exception:
             # Fallback: discovery build with credentials (library default http).
             authorized = None
@@ -147,10 +171,11 @@ class Transport:
             service = build(api, api_version, http=authorized)
         else:
             service = build(api, api_version, credentials=creds)
-            # Best-effort UA on the authorized session if present.
             session = getattr(service, "_http", None)
             if isinstance(session, AuthorizedSession):
                 session.headers["User-Agent"] = ua
+            elif session is not None:
+                service._http = _UserAgentHttp(session, ua)
 
         self._services[key] = service
         return service
