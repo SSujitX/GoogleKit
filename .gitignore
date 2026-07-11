@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[oc]
+*.so
+build/
+dist/
+wheels/
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# uv / tooling
+.uv/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Credentials & secrets (never commit)
+*.pem
+*.p12
+client_secret*.json
+client_secrets.json
+credentials.json
+service_account*.json
+sa_credentials.json
+token.json
+token_*.json
+.env
+.env.*
+
+# Local caches / OS
+Thumbs.db
+*.log
+
+# MkDocs
+site/
+
+# Temporary
+tmp/
+temp/
+.cache/
+.tox/
+.nox/
