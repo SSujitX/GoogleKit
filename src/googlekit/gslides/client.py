@@ -10,6 +10,7 @@ from googlekit.auth.scopes import ScopeProfile, ScopeSet, preset_for
 from googlekit.auth.service_account import ServiceAccountCredentialProvider
 from googlekit.core.configuration import ClientConfig
 from googlekit.core.protocols import CredentialProvider
+from googlekit.core.service_apis import SlidesAPI
 from googlekit.core.transport import Transport
 from googlekit.gslides.elements import ElementsManager
 from googlekit.gslides.images import ImagesManager
@@ -22,8 +23,9 @@ from googlekit.gslides.text import TextManager
 class SlidesClient:
     """High-level Google Slides API client.
 
-    Managers:
-        presentations, pages, elements, text, images, tables
+    Managers: ``presentations``, ``pages``, ``elements``, ``text``, ``images``, ``tables``.
+
+    Sizes/transforms use EMU helpers on models. Export/share need Drive scopes.
     """
 
     def __init__(
@@ -44,14 +46,17 @@ class SlidesClient:
 
     @property
     def provider(self) -> CredentialProvider:
+        """Credential provider backing this client (advanced)."""
         return self._provider
 
     @property
     def config(self) -> ClientConfig:
+        """Runtime config (timeout, retry, …)."""
         return self._config
 
     @property
     def transport(self) -> Transport:
+        """HTTP/discovery transport (advanced / tests)."""
         return self._transport
 
     @classmethod
@@ -63,7 +68,7 @@ class SlidesClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> SlidesClient:
+    ) -> SlidesAPI:
         """Create a Slides client using desktop OAuth."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = OAuthCredentialProvider(
@@ -83,7 +88,7 @@ class SlidesClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> SlidesClient:
+    ) -> SlidesAPI:
         """Create a Slides client using a service-account JSON key."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = ServiceAccountCredentialProvider(
@@ -102,7 +107,7 @@ class SlidesClient:
         *,
         profile: ScopeProfile = ScopeProfile.READWRITE,
         config: ClientConfig | None = None,
-    ) -> SlidesClient:
+    ) -> SlidesAPI:
         """Create a Slides client using Application Default Credentials."""
         scope_set = _resolve_scopes(scopes, profile)
         provider = ADCCredentialProvider(
