@@ -1,6 +1,6 @@
 # Google Drive
 
-Install: `uv add "googlekit[gdrive]"`
+Install: `uv add googlekit`
 
 Enable the **Google Drive API** in Google Cloud Console.
 
