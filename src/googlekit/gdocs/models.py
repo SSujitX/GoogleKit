@@ -189,6 +189,7 @@ class DocumentTab:
     title: str | None = None
     structural_elements: list[StructuralElement] = field(default_factory=list)
     body_end_index: int | None = None
+    named_ranges: dict[str, list[TextRange]] = field(default_factory=dict)
     raw: dict[str, Any] = field(default_factory=dict, repr=False)
 
 
@@ -233,6 +234,12 @@ class Document:
                     )
             named[name] = ranges
 
+        # With includeTabsContent=True, named ranges live under each
+        # tab.documentTab rather than in the legacy top-level field.
+        for tab in tabs:
+            for name, ranges in tab.named_ranges.items():
+                named.setdefault(name, []).extend(ranges)
+
         return cls(
             id=str(data.get("documentId", "")),
             title=str(data.get("title", "")),
@@ -262,12 +269,28 @@ def _parse_tabs(raw_tabs: list[dict[str, Any]]) -> list[DocumentTab]:
         body = doc_tab.get("body") or {}
         elements = [StructuralElement.from_api(el) for el in body.get("content") or []]
         end_index = elements[-1].end_index if elements and elements[-1].end_index is not None else None
+        tab_id = str(props.get("tabId") or tab.get("tabId") or "")
+        named_ranges: dict[str, list[TextRange]] = {}
+        for name, nr in (doc_tab.get("namedRanges") or {}).items():
+            ranges: list[TextRange] = []
+            for item in nr.get("namedRanges") or []:
+                for raw_range in item.get("ranges") or []:
+                    ranges.append(
+                        TextRange(
+                            start_index=int(raw_range.get("startIndex", 0)),
+                            end_index=int(raw_range.get("endIndex", 0)),
+                            segment_id=raw_range.get("segmentId"),
+                            tab_id=raw_range.get("tabId") or tab_id or None,
+                        )
+                    )
+            named_ranges[name] = ranges
         result.append(
             DocumentTab(
-                tab_id=str(props.get("tabId") or tab.get("tabId") or ""),
+                tab_id=tab_id,
                 title=props.get("title"),
                 structural_elements=elements,
                 body_end_index=end_index,
+                named_ranges=named_ranges,
                 raw=tab,
             )
         )
