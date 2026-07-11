@@ -48,15 +48,15 @@ class InsufficientScopesError(AuthorizationError):
 
 
 class MissingExtraError(ConfigurationError):
-    """Raised when an optional service extra is not installed."""
+    """Raised when Google client libraries cannot be imported."""
 
     def __init__(self, service: str, extra: str) -> None:
         self.service = service
         self.extra = extra
         super().__init__(
-            f"{service} support is not installed.\n"
-            f"Install it with:\n"
-            f'    uv add "googlekit[{extra}]"'
+            f"{service} support requires Google client libraries.\n"
+            f"Install or reinstall with:\n"
+            f"    uv add googlekit"
         )
 
 
