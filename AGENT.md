@@ -99,61 +99,40 @@ Do not create requirements.txt unless there is a documented external compatibili
 3. INSTALLATION CONTRACT
 ────────────────────────────────────────────────────────────────
 
-Use one distribution with standardized optional dependencies.
+Use one distribution with Google API client libraries as default dependencies.
 
-Required installation commands:
+Required installation command:
 
     uv add googlekit
-    uv add "googlekit[gdrive]"
-    uv add "googlekit[gsheets]"
-    uv add "googlekit[gcalendar]"
-    uv add "googlekit[gdocs]"
-    uv add "googlekit[gslides]"
-    uv add "googlekit[all]"
 
 Meaning:
 
 - `googlekit`
-  - Core types
-  - Authentication abstractions
-  - Exceptions
-  - Configuration
-  - No eager import of optional Google service dependencies
+  - Core types, authentication, exceptions, configuration
+  - All five service packages (Drive, Sheets, Calendar, Docs, Slides)
+  - Google API client libraries (`google-api-python-client`, `google-auth`, …)
 
-- `googlekit[gdrive]`
-  - Google Drive functionality
+Do not use optional service extras. If client libraries cannot be imported at
+runtime, raise `MissingExtraError` with:
 
-- `googlekit[gsheets]`
-  - Google Sheets functionality
+        uv add googlekit
 
-- `googlekit[gcalendar]`
-  - Google Calendar functionality
+────────────────────────────────────────────────────────────────
+PACKAGING RULES
+────────────────────────────────────────────────────────────────
 
-- `googlekit[gdocs]`
-  - Google Docs functionality
+Use `[project.dependencies]` for Google client libraries.
 
-- `googlekit[gslides]`
-  - Google Slides functionality
+Do not create circular self-dependencies.
 
-- `googlekit[all]`
-  - All five services
-
-Use `[project.optional-dependencies]`.
-
-Do not create circular self-dependencies such as placing
-`googlekit[gdrive]` inside GoogleKit’s own optional-dependency definitions.
-
-List the actual dependency union directly in each applicable extra.
-
-Extras add dependencies; they do not selectively remove package source files. All service source modules may ship in the wheel, but unavailable services must fail cleanly when their required extra is not installed.
+All service source modules ship in the wheel. Runtime import failures for Google
+client libraries must fail cleanly with `MissingExtraError`.
 
 Required error example:
 
-    Google Drive support is not installed.
-    Install it with:
-        uv add "googlekit[gdrive]"
-
-The base package must import successfully when no service extra is installed.
+    Google Drive support requires Google client libraries.
+    Install or reinstall with:
+        uv add googlekit
 
 ────────────────────────────────────────────────────────────────
 4. PACKAGE PURPOSE AND PUBLIC API
@@ -1003,21 +982,19 @@ Packaging tests:
 
        uv build
 
-2. Create a clean environment with base package only.
+2. Create a clean environment and install the wheel.
 
 3. Confirm:
 
        import googlekit
+       from googlekit.gdrive import DriveClient
 
-   succeeds without service dependencies.
+   succeeds with Google client libraries present.
 
-4. Confirm accessing an unavailable service raises MissingExtraError with the correct uv command.
+4. Confirm a mocked ImportError for Google client libraries raises
+   MissingExtraError suggesting `uv add googlekit`.
 
-5. Install and test each extra independently.
-
-6. Install `[all]` and test all public imports.
-
-7. Verify wheel contents include:
+5. Verify wheel contents include:
    - all required modules
    - py.typed
    - license metadata
@@ -1025,7 +1002,7 @@ Packaging tests:
    - no test credentials
    - no local cache files
 
-8. Verify source and wheel metadata.
+6. Verify source and wheel metadata.
 
 Target meaningful coverage of at least 90%, but prioritize behavior over gaming the coverage number.
 
@@ -1057,12 +1034,6 @@ README must include:
 Required installation examples:
 
     uv add googlekit
-    uv add "googlekit[gdrive]"
-    uv add "googlekit[gsheets]"
-    uv add "googlekit[gcalendar]"
-    uv add "googlekit[gdocs]"
-    uv add "googlekit[gslides]"
-    uv add "googlekit[all]"
 
 Document cross-service requirements:
 
@@ -1151,33 +1122,28 @@ Obtain version at runtime using package metadata rather than manually duplicatin
 
 The implementation is complete only when all of these are true:
 
-1. `uv sync --all-extras` succeeds.
-2. `uv run ruff format --check .` succeeds.
-3. `uv run ruff check .` succeeds.
-4. `uv run mypy src` succeeds.
-5. `uv run pytest` succeeds.
-6. `uv build` creates valid wheel and sdist.
-7. Plain `googlekit` imports without service extras.
-8. Every individual service extra installs independently.
-9. `[all]` installs every service.
-10. Missing services produce friendly MissingExtraError messages.
-11. OAuth token refresh is tested.
-12. Service-account construction is tested.
-13. ADC construction is tested.
-14. Scope aggregation is tested.
-15. Pagination is lazy and tested.
-16. Retry behavior is tested without real sleeping.
-17. Errors are mapped into GoogleKit exceptions.
-18. Large transfers stream rather than loading everything into memory.
-19. Drive shared-drive operations are supported where applicable.
-20. Calendar timezone handling is correct.
-21. Docs UTF-16 index handling is tested.
-22. Cross-service Drive export/share requirements are documented.
-23. No secret values appear in logs.
-24. Every example passes static validation.
-25. Wheel installation works in a clean environment.
-26. Documentation accurately matches the implemented API.
-27. There are no placeholders in required features.
+1. `uv sync --group dev` succeeds.
+2. `uv run pytest -m "not integration"` succeeds.
+3. `uv build` creates valid wheel and sdist.
+4. Plain `uv add googlekit` / wheel install includes Google client libraries.
+5. Mocked missing clients produce friendly MissingExtraError messages (`uv add googlekit`).
+6. OAuth token refresh is tested.
+7. Service-account construction is tested.
+8. ADC construction is tested.
+9. Scope aggregation is tested.
+10. Pagination is lazy and tested.
+11. Retry behavior is tested without real sleeping.
+12. Errors are mapped into GoogleKit exceptions.
+13. Large transfers stream rather than loading everything into memory.
+14. Drive shared-drive operations are supported where applicable.
+15. Calendar timezone handling is correct.
+16. Docs UTF-16 index handling is tested.
+17. Cross-service Drive export/share requirements are documented.
+18. No secret values appear in logs.
+19. Every example passes static validation.
+20. Wheel installation works in a clean environment.
+21. Documentation accurately matches the implemented API.
+22. There are no placeholders in required features.
 
 ────────────────────────────────────────────────────────────────
 23. IMPLEMENTATION PROCESS
