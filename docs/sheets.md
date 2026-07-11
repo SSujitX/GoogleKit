@@ -50,6 +50,29 @@ Factory methods accept `profile=ScopeProfile.READWRITE` (default), optional `sco
 | `sheets.worksheets` | Tabs: create, rename, delete, resize, freeze, hide |
 | `sheets.formatting` | Text, numbers, colors, borders, merges, sizes |
 
+### Optional shortcuts vs managers
+
+Both appear after `sheets.` (typed as `SheetsAPI`).
+
+| Shortcut | Delegates to |
+| -------- | ------------ |
+| `create_spreadsheet(title, ...)` | `spreadsheets.create(...)` |
+| `get_spreadsheet(id, ...)` | `spreadsheets.get(...)` |
+| `read_values(id, range)` | `values.read(...)` |
+| `write_values(id, range, values)` | `values.write(...)` |
+| `append_values(id, range, values)` | `values.append(...)` |
+
+```python
+# Manager
+sheets.values.write("sid", "Sheet1!A1", [["Ada", 98]])
+rows = sheets.values.read("sid", "Sheet1!A1:B10")
+
+# Shortcut (equivalent)
+sheets.write_values("sid", "Sheet1!A1", [["Ada", 98]])
+rows = sheets.read_values("sid", "Sheet1!A1:B10")
+ss = sheets.create_spreadsheet("Budget")  # or sheets.spreadsheets.create(...)
+```
+
 ---
 
 ## A1 ranges
