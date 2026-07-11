@@ -111,17 +111,7 @@ class ScopeSet:
         return str(scope) in self.values
 
     def covers(self, required: ScopeSet | Iterable[str | Scope]) -> bool:
-        needed = (
-            required.values
-            if isinstance(required, ScopeSet)
-            else frozenset(str(s) for s in required)
-        )
-        # Full drive / calendar cover narrower scopes for practical checks.
-        if Scope.DRIVE in self.values:
-            needed = frozenset(s for s in needed if s not in _DRIVE_NARROW)
-        if Scope.CALENDAR in self.values:
-            needed = frozenset(s for s in needed if s not in _CALENDAR_NARROW)
-        return needed <= self.values
+        return not self.missing(required)
 
     def missing(self, required: ScopeSet | Iterable[str | Scope]) -> frozenset[str]:
         needed = (
@@ -129,8 +119,11 @@ class ScopeSet:
             if isinstance(required, ScopeSet)
             else frozenset(str(s) for s in required)
         )
-        if self.covers(needed):
-            return frozenset()
+        # Full drive / calendar cover narrower scopes (same rules as covers()).
+        if Scope.DRIVE in self.values:
+            needed = frozenset(s for s in needed if s not in _DRIVE_NARROW)
+        if Scope.CALENDAR in self.values:
+            needed = frozenset(s for s in needed if s not in _CALENDAR_NARROW)
         return needed - self.values
 
     def __iter__(self) -> Iterator[str]:
