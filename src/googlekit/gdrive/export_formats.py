@@ -54,10 +54,9 @@ EXPORT_MIME_MAP: dict[str, dict[str, str]] = {
     "application/vnd.google-apps.script": {
         "json": "application/vnd.google-apps.script+json",
     },
-    "application/vnd.google-apps.vid": {
-        "mp4": "video/mp4",
-    },
 }
+
+GOOGLE_VIDS_MIME = "application/vnd.google-apps.vid"
 
 
 def resolve_export_mime(source_mime: str, export_format: str) -> str:
@@ -68,6 +67,12 @@ def resolve_export_mime(source_mime: str, export_format: str) -> str:
     """
     require_non_empty(source_mime, "source_mime")
     require_non_empty(export_format, "export_format")
+    if source_mime == GOOGLE_VIDS_MIME:
+        raise ValidationError(
+            "Google Vids cannot be exported with Drive files.export. "
+            "Google requires the long-running files.download operation, "
+            "which GoogleKit does not currently implement."
+        )
     formats = EXPORT_MIME_MAP.get(source_mime)
     if formats is None:
         raise ValidationError(
