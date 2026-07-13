@@ -1,4 +1,12 @@
 <p align="center">
+  <a href="https://pypi.org/project/googlekit/"><img src="https://img.shields.io/pypi/v/googlekit.svg" alt="PyPI version"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11+-blue.svg" alt="Python"></a>
+  <a href="https://pepy.tech/project/googlekit"><img src="https://static.pepy.tech/badge/googlekit" alt="Downloads"></a>
+  <a href="https://pepy.tech/project/googlekit"><img src="https://static.pepy.tech/badge/googlekit/month" alt="Monthly Downloads"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/SSujitX/GoogleKit">GitHub</a> •
   <a href="https://pypi.org/project/googlekit/">PyPI</a> •
   <a href="https://ssujitx.github.io/GoogleKit/">Documentation</a> •
